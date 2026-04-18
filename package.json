@@ -7,7 +7,13 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "test": "pnpm run test:output",
-    "test:output": "pnpm run build && git diff --exit-code main.js"
+    "test:output": "pnpm run build && git diff --exit-code main.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,js,json,css,md,yaml,yml}": "prettier --write"
   },
   "keywords": [],
   "author": "alexlafroscia",
@@ -22,7 +28,10 @@
     "@types/node": "^22.0.0",
     "builtin-modules": "^4.0.0",
     "esbuild": "^0.21.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "obsidian": "^1.4.11",
+    "prettier": "^3.8.3",
     "tslib": "^2.6.3",
     "typescript": "^5.4.5"
   },
