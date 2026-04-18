@@ -1,6 +1,9 @@
 node_modules/
 *.map
 
+# Claude
+.claude/worktrees
+
 # Obsidian vault generated files
 test-vault/.obsidian/workspace.json
 test-vault/.obsidian/workspace-mobile.json
