@@ -4104,6 +4104,13 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
         }
       })
     );
+    this.registerEvent(
+      this.app.vault.on("modify", (file) => {
+        if (file.path === CONFIG_FILENAME) {
+          this.reload();
+        }
+      })
+    );
   }
   async initializeCollection() {
     this.config = await createDefaultConfig(this.app.vault);

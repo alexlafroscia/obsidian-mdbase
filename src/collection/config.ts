@@ -3,7 +3,7 @@ import { parseYaml, stringifyYaml } from "obsidian";
 import type { MdbaseConfig } from "../types.ts";
 import { SPEC_VERSION } from "../types.ts";
 
-const CONFIG_FILENAME = "mdbase.yaml";
+export const CONFIG_FILENAME = "mdbase.yaml";
 
 export async function loadConfig(vault: Vault): Promise<MdbaseConfig | null> {
   const file = vault.getFileByPath(CONFIG_FILENAME);
