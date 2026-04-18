@@ -9,10 +9,13 @@
     "test": "pnpm run test:output",
     "test:output": "pnpm run build && git diff --exit-code main.js"
   },
-  "packageManager": "pnpm@10.33.0",
   "keywords": [],
   "author": "alexlafroscia",
   "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "micromatch": "^4.0.7"
+  },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/micromatch": "^4.0.9",
@@ -23,8 +26,8 @@
     "tslib": "^2.6.3",
     "typescript": "^5.4.5"
   },
-  "dependencies": {
-    "js-yaml": "^4.1.0",
-    "micromatch": "^4.0.7"
+  "packageManager": "pnpm@10.33.0",
+  "volta": {
+    "node": "25.9.0"
   }
 }
