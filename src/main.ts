@@ -17,11 +17,6 @@ export default class MdbasePlugin extends Plugin {
   private statusBarItem!: HTMLElement;
 
   async onload(): Promise<void> {
-    this.config = await loadConfig(this.app.vault);
-    if (this.config) {
-      this.types = await loadTypes(this.app.vault, this.config);
-    }
-
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.setText("mdbase");
 
@@ -62,6 +57,10 @@ export default class MdbasePlugin extends Plugin {
         }
       }),
     );
+
+    this.app.workspace.onLayoutReady(async () => {
+      await this.loadConfig();
+    });
   }
 
   async initializeCollection(): Promise<void> {
@@ -70,11 +69,16 @@ export default class MdbasePlugin extends Plugin {
     new Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
 
-  async reload(): Promise<void> {
+  async loadConfig(): Promise<void> {
     this.config = await loadConfig(this.app.vault);
     this.types = this.config
       ? await loadTypes(this.app.vault, this.config)
       : new Map();
+  }
+
+  async reload(): Promise<void> {
+    await this.loadConfig();
+
     this.issues.clear();
     const activeFile = this.app.workspace.getActiveFile();
     if (activeFile) {

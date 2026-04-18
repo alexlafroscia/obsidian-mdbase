@@ -4073,10 +4073,6 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
     this.issues = /* @__PURE__ */ new Map();
   }
   async onload() {
-    this.config = await loadConfig(this.app.vault);
-    if (this.config) {
-      this.types = await loadTypes(this.app.vault, this.config);
-    }
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.setText("mdbase");
     this.addSettingTab(new MdbaseSettingTab(this.app, this));
@@ -4111,15 +4107,21 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
         }
       })
     );
+    this.app.workspace.onLayoutReady(async () => {
+      await this.loadConfig();
+    });
   }
   async initializeCollection() {
     this.config = await createDefaultConfig(this.app.vault);
     this.types = /* @__PURE__ */ new Map();
     new import_obsidian4.Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
-  async reload() {
+  async loadConfig() {
     this.config = await loadConfig(this.app.vault);
     this.types = this.config ? await loadTypes(this.app.vault, this.config) : /* @__PURE__ */ new Map();
+  }
+  async reload() {
+    await this.loadConfig();
     this.issues.clear();
     const activeFile = this.app.workspace.getActiveFile();
     if (activeFile) {
