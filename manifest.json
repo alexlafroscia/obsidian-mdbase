@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-mdbase",
+  "name": "mdbase",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Typed markdown collections via the mdbase spec — configure types and validate frontmatter.",
+  "author": "alexlafroscia",
+  "authorUrl": "https://github.com/alexlafroscia",
+  "isDesktopOnly": false
+}

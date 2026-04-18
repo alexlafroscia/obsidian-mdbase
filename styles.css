@@ -1,0 +1,189 @@
+.mdbase-settings-section {
+  margin-bottom: 2rem;
+}
+
+.mdbase-settings-section h3 {
+  margin-top: 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 0.5rem;
+}
+
+.mdbase-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mdbase-type-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: 0.75rem 1rem;
+  background: var(--background-secondary);
+}
+
+.mdbase-type-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mdbase-type-item-title {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.mdbase-type-item-meta {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.mdbase-type-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mdbase-type-editor {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--background-primary);
+}
+
+.mdbase-type-editor h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1em;
+}
+
+.mdbase-field-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mdbase-field-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 0.5rem 0.75rem;
+  background: var(--background-secondary);
+}
+
+.mdbase-field-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mdbase-field-item-title {
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.mdbase-field-item-type {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  background: var(--background-modifier-form-field);
+  border-radius: var(--radius-s);
+  padding: 0.1em 0.4em;
+}
+
+.mdbase-field-item-required {
+  font-size: 0.75em;
+  color: var(--text-error);
+  margin-left: 0.25rem;
+}
+
+.mdbase-field-editor {
+  border: 1px solid var(--background-modifier-border-focus);
+  border-radius: var(--radius-s);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: var(--background-primary);
+}
+
+.mdbase-field-editor .setting-item {
+  padding: 0.25rem 0;
+  border: none;
+}
+
+.mdbase-status-error {
+  color: var(--text-error);
+}
+
+.mdbase-status-warning {
+  color: var(--text-warning);
+}
+
+.mdbase-status-ok {
+  color: var(--text-success);
+}
+
+.mdbase-validation-modal .mdbase-issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.mdbase-issue-item {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-s);
+  border-left: 3px solid;
+}
+
+.mdbase-issue-item.error {
+  border-color: var(--color-red);
+  background: rgba(var(--color-red-rgb), 0.1);
+}
+
+.mdbase-issue-item.warning {
+  border-color: var(--color-orange);
+  background: rgba(var(--color-orange-rgb), 0.1);
+}
+
+.mdbase-issue-field {
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.mdbase-issue-message {
+  font-size: 0.9em;
+  margin-top: 0.2rem;
+}
+
+.mdbase-issue-type {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.mdbase-empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 1rem;
+  font-size: 0.9em;
+}
+
+.mdbase-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+
+.mdbase-constraint-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mdbase-constraint-row input {
+  flex: 1;
+}

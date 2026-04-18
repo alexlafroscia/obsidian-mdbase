@@ -1,0 +1,27 @@
+{
+  "name": "obsidian-mdbase",
+  "version": "0.1.0",
+  "description": "Typed markdown collections via the mdbase spec",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [],
+  "author": "alexlafroscia",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/micromatch": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "^0.21.5",
+    "obsidian": "^1.4.11",
+    "tslib": "^2.6.3",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "micromatch": "^4.0.7"
+  }
+}
