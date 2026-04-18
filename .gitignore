@@ -1,2 +1,8 @@
 node_modules/
 *.map
+
+# Obsidian vault generated files
+test-vault/.obsidian/workspace.json
+test-vault/.obsidian/workspace-mobile.json
+test-vault/.obsidian/cache
+test-vault/.obsidian/plugins/obsidian-mdbase/node_modules
