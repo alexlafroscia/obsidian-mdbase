@@ -1,6 +1,18 @@
-import { App, Modal, Notice, PluginSettingTab, Setting, setIcon } from "obsidian";
+import {
+  App,
+  Modal,
+  Notice,
+  PluginSettingTab,
+  Setting,
+  setIcon,
+} from "obsidian";
 import type MdbasePlugin from "../main.ts";
-import type { FieldDef, FieldType, MdbaseConfig, TypeDefinition } from "../types.ts";
+import type {
+  FieldDef,
+  FieldType,
+  MdbaseConfig,
+  TypeDefinition,
+} from "../types.ts";
 import { FIELD_TYPES } from "../schema/fieldTypes.ts";
 import { saveConfig } from "../collection/config.ts";
 import { deleteType, saveType } from "../collection/typeLoader.ts";
@@ -44,11 +56,14 @@ export class MdbaseSettingTab extends PluginSettingTab {
           .onClick(async () => {
             await this.plugin.initializeCollection();
             this.display();
-          })
+          }),
       );
   }
 
-  private renderCollectionSettings(el: HTMLElement, config: MdbaseConfig): void {
+  private renderCollectionSettings(
+    el: HTMLElement,
+    config: MdbaseConfig,
+  ): void {
     const section = el.createDiv({ cls: "mdbase-settings-section" });
     section.createEl("h3", { text: "Collection Settings" });
 
@@ -56,24 +71,20 @@ export class MdbaseSettingTab extends PluginSettingTab {
       .setName("Name")
       .setDesc("Human-readable collection title (optional).")
       .addText((text) =>
-        text
-          .setValue(config.name ?? "")
-          .onChange(async (value) => {
-            config.name = value || undefined;
-            await saveConfig(this.app.vault, config);
-          })
+        text.setValue(config.name ?? "").onChange(async (value) => {
+          config.name = value || undefined;
+          await saveConfig(this.app.vault, config);
+        }),
       );
 
     new Setting(section)
       .setName("Description")
       .setDesc("Short description of this collection (optional).")
       .addText((text) =>
-        text
-          .setValue(config.description ?? "")
-          .onChange(async (value) => {
-            config.description = value || undefined;
-            await saveConfig(this.app.vault, config);
-          })
+        text.setValue(config.description ?? "").onChange(async (value) => {
+          config.description = value || undefined;
+          await saveConfig(this.app.vault, config);
+        }),
       );
 
     new Setting(section)
@@ -87,9 +98,12 @@ export class MdbaseSettingTab extends PluginSettingTab {
           .setValue(config.settings?.default_validation ?? "warn")
           .onChange(async (value) => {
             config.settings ??= {};
-            config.settings.default_validation = value as "off" | "warn" | "error";
+            config.settings.default_validation = value as
+              | "off"
+              | "warn"
+              | "error";
             await saveConfig(this.app.vault, config);
-          })
+          }),
       );
 
     new Setting(section)
@@ -106,7 +120,7 @@ export class MdbaseSettingTab extends PluginSettingTab {
             config.settings.default_strict =
               value === "true" ? true : value === "warn" ? "warn" : false;
             await saveConfig(this.app.vault, config);
-          })
+          }),
       );
 
     new Setting(section)
@@ -121,7 +135,7 @@ export class MdbaseSettingTab extends PluginSettingTab {
             config.settings.types_folder = value || undefined;
             await saveConfig(this.app.vault, config);
             await this.plugin.reload();
-          })
+          }),
       );
   }
 
@@ -141,7 +155,7 @@ export class MdbaseSettingTab extends PluginSettingTab {
             this.display();
           });
           modal.open();
-        })
+        }),
     );
   }
 
@@ -176,7 +190,10 @@ export class MdbaseSettingTab extends PluginSettingTab {
       meta.push(`fields_present: ${typeDef.match.fields_present.join(", ")}`);
     }
     if (typeDef.description) {
-      info.createDiv({ cls: "mdbase-type-item-meta", text: typeDef.description });
+      info.createDiv({
+        cls: "mdbase-type-item-meta",
+        text: typeDef.description,
+      });
     }
     info.createDiv({ cls: "mdbase-type-item-meta", text: meta.join(" · ") });
 
@@ -213,7 +230,7 @@ class TypeEditorModal extends Modal {
     app: App,
     plugin: MdbasePlugin,
     original: TypeDefinition | null,
-    onSave: () => void
+    onSave: () => void,
   ) {
     super(app);
     this.plugin = plugin;
@@ -225,7 +242,9 @@ class TypeEditorModal extends Modal {
   }
 
   onOpen(): void {
-    this.titleEl.setText(this.original ? `Edit type: ${this.original.name}` : "Add type");
+    this.titleEl.setText(
+      this.original ? `Edit type: ${this.original.name}` : "Add type",
+    );
     this.render();
   }
 
@@ -243,16 +262,16 @@ class TypeEditorModal extends Modal {
         t
           .setValue(this.draft.name)
           .setPlaceholder("note")
-          .onChange((v) => { this.draft.name = v.toLowerCase(); })
+          .onChange((v) => {
+            this.draft.name = v.toLowerCase();
+          }),
       );
 
-    new Setting(contentEl)
-      .setName("Description")
-      .addText((t) =>
-        t
-          .setValue(this.draft.description ?? "")
-          .onChange((v) => { this.draft.description = v || undefined; })
-      );
+    new Setting(contentEl).setName("Description").addText((t) =>
+      t.setValue(this.draft.description ?? "").onChange((v) => {
+        this.draft.description = v || undefined;
+      }),
+    );
 
     new Setting(contentEl)
       .setName("Extends")
@@ -261,7 +280,9 @@ class TypeEditorModal extends Modal {
         t
           .setValue(this.draft.extends ?? "")
           .setPlaceholder("base-type")
-          .onChange((v) => { this.draft.extends = v || undefined; })
+          .onChange((v) => {
+            this.draft.extends = v || undefined;
+          }),
       );
 
     new Setting(contentEl)
@@ -273,11 +294,21 @@ class TypeEditorModal extends Modal {
           .addOption("false", "Allow")
           .addOption("warn", "Warn")
           .addOption("true", "Error")
-          .setValue(this.draft.strict === undefined ? "inherit" : String(this.draft.strict))
+          .setValue(
+            this.draft.strict === undefined
+              ? "inherit"
+              : String(this.draft.strict),
+          )
           .onChange((v) => {
             this.draft.strict =
-              v === "inherit" ? undefined : v === "true" ? true : v === "warn" ? "warn" : false;
-          })
+              v === "inherit"
+                ? undefined
+                : v === "true"
+                  ? true
+                  : v === "warn"
+                    ? "warn"
+                    : false;
+          }),
       );
 
     // --- Match rules ---
@@ -293,10 +324,13 @@ class TypeEditorModal extends Modal {
           .onChange((v) => {
             this.draft.match ??= {};
             this.draft.match.path_glob = v || undefined;
-            if (!this.draft.match.path_glob && !this.draft.match.fields_present?.length) {
+            if (
+              !this.draft.match.path_glob &&
+              !this.draft.match.fields_present?.length
+            ) {
               this.draft.match = undefined;
             }
-          })
+          }),
       );
 
     new Setting(contentEl)
@@ -307,13 +341,21 @@ class TypeEditorModal extends Modal {
           .setValue((this.draft.match?.fields_present ?? []).join(", "))
           .setPlaceholder("due_date, status")
           .onChange((v) => {
-            const fields = v.split(",").map((s) => s.trim()).filter(Boolean);
+            const fields = v
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
             this.draft.match ??= {};
-            this.draft.match.fields_present = fields.length ? fields : undefined;
-            if (!this.draft.match.path_glob && !this.draft.match.fields_present?.length) {
+            this.draft.match.fields_present = fields.length
+              ? fields
+              : undefined;
+            if (
+              !this.draft.match.path_glob &&
+              !this.draft.match.fields_present?.length
+            ) {
               this.draft.match = undefined;
             }
-          })
+          }),
       );
 
     // --- Fields ---
@@ -324,12 +366,17 @@ class TypeEditorModal extends Modal {
     new Setting(contentEl).addButton((btn) =>
       btn.setButtonText("Add Field").onClick(() => {
         this.draft.fields ??= {};
-        const modal = new FieldEditorModal(this.app, null, null, (name, def) => {
-          this.draft.fields![name] = def;
-          this.render();
-        });
+        const modal = new FieldEditorModal(
+          this.app,
+          null,
+          null,
+          (name, def) => {
+            this.draft.fields![name] = def;
+            this.render();
+          },
+        );
         modal.open();
-      })
+      }),
     );
 
     // --- Save / Cancel ---
@@ -337,7 +384,10 @@ class TypeEditorModal extends Modal {
     const cancelBtn = actions.createEl("button", { text: "Cancel" });
     cancelBtn.addEventListener("click", () => this.close());
 
-    const saveBtn = actions.createEl("button", { text: "Save", cls: "mod-cta" });
+    const saveBtn = actions.createEl("button", {
+      text: "Save",
+      cls: "mod-cta",
+    });
     saveBtn.addEventListener("click", async () => {
       if (!this.draft.name) {
         new Notice("Type name is required.");
@@ -367,17 +417,26 @@ class TypeEditorModal extends Modal {
       const titleEl = header.createDiv();
       titleEl.createSpan({ cls: "mdbase-field-item-title", text: name });
       titleEl.createSpan({ cls: "mdbase-field-item-type", text: def.type });
-      if (def.required) titleEl.createSpan({ cls: "mdbase-field-item-required", text: "*required" });
+      if (def.required)
+        titleEl.createSpan({
+          cls: "mdbase-field-item-required",
+          text: "*required",
+        });
 
       const actions = header.createDiv({ cls: "mdbase-type-item-actions" });
 
       const editBtn = actions.createEl("button", { text: "Edit" });
       editBtn.addEventListener("click", () => {
-        const modal = new FieldEditorModal(this.app, name, def, (newName, newDef) => {
-          delete this.draft.fields![name];
-          this.draft.fields![newName] = newDef;
-          this.render();
-        });
+        const modal = new FieldEditorModal(
+          this.app,
+          name,
+          def,
+          (newName, newDef) => {
+            delete this.draft.fields![name];
+            this.draft.fields![newName] = newDef;
+            this.render();
+          },
+        );
         modal.open();
       });
 
@@ -405,18 +464,22 @@ class FieldEditorModal extends Modal {
     app: App,
     originalName: string | null,
     originalDef: FieldDef | null,
-    onSave: (name: string, def: FieldDef) => void
+    onSave: (name: string, def: FieldDef) => void,
   ) {
     super(app);
     this.originalName = originalName;
     this.originalDef = originalDef;
     this.onSave = onSave;
     this.draftName = originalName ?? "";
-    this.draft = originalDef ? structuredClone(originalDef) : { type: "string" };
+    this.draft = originalDef
+      ? structuredClone(originalDef)
+      : { type: "string" };
   }
 
   onOpen(): void {
-    this.titleEl.setText(this.originalName ? `Edit field: ${this.originalName}` : "Add field");
+    this.titleEl.setText(
+      this.originalName ? `Edit field: ${this.originalName}` : "Add field",
+    );
     this.render();
   }
 
@@ -424,40 +487,34 @@ class FieldEditorModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    new Setting(contentEl)
-      .setName("Field name")
-      .addText((t) =>
-        t
-          .setValue(this.draftName)
-          .setPlaceholder("field_name")
-          .onChange((v) => { this.draftName = v; })
-      );
+    new Setting(contentEl).setName("Field name").addText((t) =>
+      t
+        .setValue(this.draftName)
+        .setPlaceholder("field_name")
+        .onChange((v) => {
+          this.draftName = v;
+        }),
+    );
 
-    new Setting(contentEl)
-      .setName("Type")
-      .addDropdown((d) => {
-        for (const ft of FIELD_TYPES) d.addOption(ft, ft);
-        return d
-          .setValue(this.draft.type)
-          .onChange((v) => {
-            this.draft.type = v as FieldType;
-            this.render();
-          });
+    new Setting(contentEl).setName("Type").addDropdown((d) => {
+      for (const ft of FIELD_TYPES) d.addOption(ft, ft);
+      return d.setValue(this.draft.type).onChange((v) => {
+        this.draft.type = v as FieldType;
+        this.render();
       });
+    });
 
-    new Setting(contentEl)
-      .setName("Required")
-      .addToggle((t) =>
-        t.setValue(this.draft.required ?? false).onChange((v) => { this.draft.required = v || undefined; })
-      );
+    new Setting(contentEl).setName("Required").addToggle((t) =>
+      t.setValue(this.draft.required ?? false).onChange((v) => {
+        this.draft.required = v || undefined;
+      }),
+    );
 
-    new Setting(contentEl)
-      .setName("Description")
-      .addText((t) =>
-        t
-          .setValue(this.draft.description ?? "")
-          .onChange((v) => { this.draft.description = v || undefined; })
-      );
+    new Setting(contentEl).setName("Description").addText((t) =>
+      t.setValue(this.draft.description ?? "").onChange((v) => {
+        this.draft.description = v || undefined;
+      }),
+    );
 
     // Type-specific constraints
     this.renderTypeConstraints(contentEl);
@@ -466,7 +523,10 @@ class FieldEditorModal extends Modal {
     const cancelBtn = actions.createEl("button", { text: "Cancel" });
     cancelBtn.addEventListener("click", () => this.close());
 
-    const saveBtn = actions.createEl("button", { text: "Save field", cls: "mod-cta" });
+    const saveBtn = actions.createEl("button", {
+      text: "Save field",
+      cls: "mod-cta",
+    });
     saveBtn.addEventListener("click", () => {
       if (!this.draftName) {
         new Notice("Field name is required.");
@@ -485,30 +545,32 @@ class FieldEditorModal extends Modal {
         t
           .setValue(String(this.draft.min_length ?? ""))
           .setPlaceholder("0")
-          .onChange((v) => { this.draft.min_length = v ? parseInt(v) : undefined; })
+          .onChange((v) => {
+            this.draft.min_length = v ? parseInt(v) : undefined;
+          }),
       );
       new Setting(el).setName("Max length").addText((t) =>
-        t
-          .setValue(String(this.draft.max_length ?? ""))
-          .onChange((v) => { this.draft.max_length = v ? parseInt(v) : undefined; })
+        t.setValue(String(this.draft.max_length ?? "")).onChange((v) => {
+          this.draft.max_length = v ? parseInt(v) : undefined;
+        }),
       );
       new Setting(el).setName("Pattern (regex)").addText((t) =>
-        t
-          .setValue(this.draft.pattern ?? "")
-          .onChange((v) => { this.draft.pattern = v || undefined; })
+        t.setValue(this.draft.pattern ?? "").onChange((v) => {
+          this.draft.pattern = v || undefined;
+        }),
       );
     }
 
     if (type === "integer" || type === "number") {
       new Setting(el).setName("Min").addText((t) =>
-        t
-          .setValue(String(this.draft.min ?? ""))
-          .onChange((v) => { this.draft.min = v ? Number(v) : undefined; })
+        t.setValue(String(this.draft.min ?? "")).onChange((v) => {
+          this.draft.min = v ? Number(v) : undefined;
+        }),
       );
       new Setting(el).setName("Max").addText((t) =>
-        t
-          .setValue(String(this.draft.max ?? ""))
-          .onChange((v) => { this.draft.max = v ? Number(v) : undefined; })
+        t.setValue(String(this.draft.max ?? "")).onChange((v) => {
+          this.draft.max = v ? Number(v) : undefined;
+        }),
       );
     }
 
@@ -517,26 +579,29 @@ class FieldEditorModal extends Modal {
         .setName("Values")
         .setDesc("Comma-separated list of allowed values.")
         .addText((t) =>
-          t
-            .setValue((this.draft.values ?? []).join(", "))
-            .onChange((v) => {
-              this.draft.values = v.split(",").map((s) => s.trim()).filter(Boolean);
-            })
+          t.setValue((this.draft.values ?? []).join(", ")).onChange((v) => {
+            this.draft.values = v
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }),
         );
     }
 
     if (type === "list") {
       new Setting(el).setName("Element type").addDropdown((d) => {
-        const elementTypes: FieldType[] = FIELD_TYPES.filter((f) => f !== "list" && f !== "object");
+        const elementTypes: FieldType[] = FIELD_TYPES.filter(
+          (f) => f !== "list" && f !== "object",
+        );
         for (const ft of elementTypes) d.addOption(ft, ft);
-        return d
-          .setValue(this.draft.element_type ?? "string")
-          .onChange((v) => { this.draft.element_type = v as FieldType; });
+        return d.setValue(this.draft.element_type ?? "string").onChange((v) => {
+          this.draft.element_type = v as FieldType;
+        });
       });
       new Setting(el).setName("Unique elements").addToggle((t) =>
-        t
-          .setValue(this.draft.unique_elements ?? false)
-          .onChange((v) => { this.draft.unique_elements = v || undefined; })
+        t.setValue(this.draft.unique_elements ?? false).onChange((v) => {
+          this.draft.unique_elements = v || undefined;
+        }),
       );
     }
   }

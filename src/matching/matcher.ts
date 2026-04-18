@@ -5,7 +5,7 @@ import { getExplicitTypeKeys } from "../types.ts";
 function resolveInheritance(
   name: string,
   types: Map<string, TypeDefinition>,
-  visited = new Set<string>()
+  visited = new Set<string>(),
 ): TypeDefinition | null {
   if (visited.has(name)) return null; // circular
   visited.add(name);
@@ -25,7 +25,7 @@ function resolveInheritance(
 
 export function resolveType(
   name: string,
-  types: Map<string, TypeDefinition>
+  types: Map<string, TypeDefinition>,
 ): TypeDefinition | null {
   return resolveInheritance(name.toLowerCase(), types);
 }
@@ -34,7 +34,7 @@ export function matchFileToTypes(
   filePath: string,
   frontmatter: Record<string, unknown>,
   types: Map<string, TypeDefinition>,
-  config: MdbaseConfig
+  config: MdbaseConfig,
 ): TypeDefinition[] {
   const explicitKeys = getExplicitTypeKeys(config);
 
@@ -42,7 +42,9 @@ export function matchFileToTypes(
   for (const key of explicitKeys) {
     const val = frontmatter[key];
     if (val !== undefined && val !== null) {
-      const names: string[] = Array.isArray(val) ? val.map(String) : [String(val)];
+      const names: string[] = Array.isArray(val)
+        ? val.map(String)
+        : [String(val)];
       const resolved: TypeDefinition[] = [];
       for (const name of names) {
         const def = resolveType(name, types);
@@ -68,7 +70,7 @@ export function matchFileToTypes(
 function matchesRules(
   filePath: string,
   frontmatter: Record<string, unknown>,
-  typeDef: TypeDefinition
+  typeDef: TypeDefinition,
 ): boolean {
   const { match } = typeDef;
   if (!match) return false;
