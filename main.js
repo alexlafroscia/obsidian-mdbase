@@ -3227,7 +3227,12 @@ var ISO_DATETIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{
 function validateFieldValue(value, def) {
   if (value === null || value === void 0) {
     if (def.required) {
-      return { valid: false, message: "Field is required", expected: def.type, actual: "null" };
+      return {
+        valid: false,
+        message: "Field is required",
+        expected: def.type,
+        actual: "null"
+      };
     }
     return { valid: true };
   }
@@ -3262,12 +3267,20 @@ function validateByType(value, def) {
     case "any":
       return { valid: true };
     default:
-      return { valid: false, message: `Unknown field type: ${String(def.type)}` };
+      return {
+        valid: false,
+        message: `Unknown field type: ${String(def.type)}`
+      };
   }
 }
 function validateString(value, def) {
   if (typeof value !== "string") {
-    return { valid: false, message: "Expected a string", expected: "string", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a string",
+      expected: "string",
+      actual: typeof value
+    };
   }
   if (def.min_length !== void 0 && value.length < def.min_length) {
     return {
@@ -3304,33 +3317,68 @@ function validateString(value, def) {
 function validateInteger(value, def) {
   const coerced = typeof value === "string" ? Number(value) : value;
   if (!Number.isInteger(coerced)) {
-    return { valid: false, message: "Expected an integer", expected: "integer", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected an integer",
+      expected: "integer",
+      actual: typeof value
+    };
   }
   const n = coerced;
   if (def.min !== void 0 && n < def.min) {
-    return { valid: false, message: `Value too small (min ${def.min})`, expected: `>= ${def.min}`, actual: String(n) };
+    return {
+      valid: false,
+      message: `Value too small (min ${def.min})`,
+      expected: `>= ${def.min}`,
+      actual: String(n)
+    };
   }
   if (def.max !== void 0 && n > def.max) {
-    return { valid: false, message: `Value too large (max ${def.max})`, expected: `<= ${def.max}`, actual: String(n) };
+    return {
+      valid: false,
+      message: `Value too large (max ${def.max})`,
+      expected: `<= ${def.max}`,
+      actual: String(n)
+    };
   }
   return { valid: true };
 }
 function validateNumber(value, def) {
   const coerced = typeof value === "string" ? Number(value) : value;
   if (typeof coerced !== "number" || isNaN(coerced)) {
-    return { valid: false, message: "Expected a number", expected: "number", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a number",
+      expected: "number",
+      actual: typeof value
+    };
   }
   if (def.min !== void 0 && coerced < def.min) {
-    return { valid: false, message: `Value too small (min ${def.min})`, expected: `>= ${def.min}`, actual: String(coerced) };
+    return {
+      valid: false,
+      message: `Value too small (min ${def.min})`,
+      expected: `>= ${def.min}`,
+      actual: String(coerced)
+    };
   }
   if (def.max !== void 0 && coerced > def.max) {
-    return { valid: false, message: `Value too large (max ${def.max})`, expected: `<= ${def.max}`, actual: String(coerced) };
+    return {
+      valid: false,
+      message: `Value too large (max ${def.max})`,
+      expected: `<= ${def.max}`,
+      actual: String(coerced)
+    };
   }
   return { valid: true };
 }
 function validateBoolean(value) {
   if (typeof value !== "boolean") {
-    return { valid: false, message: "Expected a boolean", expected: "boolean", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a boolean",
+      expected: "boolean",
+      actual: typeof value
+    };
   }
   return { valid: true };
 }
@@ -3384,13 +3432,24 @@ function validateEnum(value, def) {
 }
 function validateList(value, def) {
   if (!Array.isArray(value)) {
-    return { valid: false, message: "Expected a list", expected: "list", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a list",
+      expected: "list",
+      actual: typeof value
+    };
   }
   if (def.min_items !== void 0 && value.length < def.min_items) {
-    return { valid: false, message: `List too short (min ${def.min_items} items)` };
+    return {
+      valid: false,
+      message: `List too short (min ${def.min_items} items)`
+    };
   }
   if (def.max_items !== void 0 && value.length > def.max_items) {
-    return { valid: false, message: `List too long (max ${def.max_items} items)` };
+    return {
+      valid: false,
+      message: `List too long (max ${def.max_items} items)`
+    };
   }
   if (def.element_type && def.element_type !== "any") {
     for (let i = 0; i < value.length; i++) {
@@ -3416,7 +3475,12 @@ function validateList(value, def) {
 }
 function validateObject(value, def) {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return { valid: false, message: "Expected an object", expected: "object", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected an object",
+      expected: "object",
+      actual: typeof value
+    };
   }
   if (def.fields) {
     for (const [key, fieldDef] of Object.entries(def.fields)) {
@@ -3431,13 +3495,23 @@ function validateObject(value, def) {
 }
 function validateLink(value) {
   if (typeof value !== "string") {
-    return { valid: false, message: "Expected a link string", expected: "link", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a link string",
+      expected: "link",
+      actual: typeof value
+    };
   }
   return { valid: true };
 }
 function validateTags(value) {
   if (!Array.isArray(value)) {
-    return { valid: false, message: "Expected a list of tags", expected: "tags (list)", actual: typeof value };
+    return {
+      valid: false,
+      message: "Expected a list of tags",
+      expected: "tags (list)",
+      actual: typeof value
+    };
   }
   for (let i = 0; i < value.length; i++) {
     if (typeof value[i] !== "string") {
@@ -3470,7 +3544,12 @@ function validateFile(filePath, frontmatter, matchedTypes, config) {
   if (matchedTypes.length === 0) return [];
   const issues = [];
   for (const typeDef of matchedTypes) {
-    const typeIssues = validateAgainstType(filePath, frontmatter, typeDef, config);
+    const typeIssues = validateAgainstType(
+      filePath,
+      frontmatter,
+      typeDef,
+      config
+    );
     issues.push(...typeIssues);
   }
   return issues;
@@ -3655,7 +3734,10 @@ var MdbaseSettingTab = class extends import_obsidian3.PluginSettingTab {
       meta.push(`fields_present: ${typeDef.match.fields_present.join(", ")}`);
     }
     if (typeDef.description) {
-      info.createDiv({ cls: "mdbase-type-item-meta", text: typeDef.description });
+      info.createDiv({
+        cls: "mdbase-type-item-meta",
+        text: typeDef.description
+      });
     }
     info.createDiv({ cls: "mdbase-type-item-meta", text: meta.join(" \xB7 ") });
     const actions = header.createDiv({ cls: "mdbase-type-item-actions" });
@@ -3687,7 +3769,9 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
     this.draft = original ? structuredClone(original) : { name: "", fields: {} };
   }
   onOpen() {
-    this.titleEl.setText(this.original ? `Edit type: ${this.original.name}` : "Add type");
+    this.titleEl.setText(
+      this.original ? `Edit type: ${this.original.name}` : "Add type"
+    );
     this.render();
   }
   render() {
@@ -3717,7 +3801,9 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
       }
     );
     new import_obsidian3.Setting(contentEl).setName("Strict mode").setDesc("How unknown fields are handled for this type.").addDropdown(
-      (d) => d.addOption("inherit", "Inherit from collection").addOption("false", "Allow").addOption("warn", "Warn").addOption("true", "Error").setValue(this.draft.strict === void 0 ? "inherit" : String(this.draft.strict)).onChange((v) => {
+      (d) => d.addOption("inherit", "Inherit from collection").addOption("false", "Allow").addOption("warn", "Warn").addOption("true", "Error").setValue(
+        this.draft.strict === void 0 ? "inherit" : String(this.draft.strict)
+      ).onChange((v) => {
         this.draft.strict = v === "inherit" ? void 0 : v === "true" ? true : v === "warn" ? "warn" : false;
       })
     );
@@ -3756,17 +3842,25 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
       (btn) => btn.setButtonText("Add Field").onClick(() => {
         var _a, _b;
         (_b = (_a = this.draft).fields) != null ? _b : _a.fields = {};
-        const modal = new FieldEditorModal(this.app, null, null, (name, def) => {
-          this.draft.fields[name] = def;
-          this.render();
-        });
+        const modal = new FieldEditorModal(
+          this.app,
+          null,
+          null,
+          (name, def) => {
+            this.draft.fields[name] = def;
+            this.render();
+          }
+        );
         modal.open();
       })
     );
     const actions = contentEl.createDiv({ cls: "mdbase-actions-row" });
     const cancelBtn = actions.createEl("button", { text: "Cancel" });
     cancelBtn.addEventListener("click", () => this.close());
-    const saveBtn = actions.createEl("button", { text: "Save", cls: "mod-cta" });
+    const saveBtn = actions.createEl("button", {
+      text: "Save",
+      cls: "mod-cta"
+    });
     saveBtn.addEventListener("click", async () => {
       if (!this.draft.name) {
         new import_obsidian3.Notice("Type name is required.");
@@ -3794,15 +3888,24 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
       const titleEl = header.createDiv();
       titleEl.createSpan({ cls: "mdbase-field-item-title", text: name });
       titleEl.createSpan({ cls: "mdbase-field-item-type", text: def.type });
-      if (def.required) titleEl.createSpan({ cls: "mdbase-field-item-required", text: "*required" });
+      if (def.required)
+        titleEl.createSpan({
+          cls: "mdbase-field-item-required",
+          text: "*required"
+        });
       const actions = header.createDiv({ cls: "mdbase-type-item-actions" });
       const editBtn = actions.createEl("button", { text: "Edit" });
       editBtn.addEventListener("click", () => {
-        const modal = new FieldEditorModal(this.app, name, def, (newName, newDef) => {
-          delete this.draft.fields[name];
-          this.draft.fields[newName] = newDef;
-          this.render();
-        });
+        const modal = new FieldEditorModal(
+          this.app,
+          name,
+          def,
+          (newName, newDef) => {
+            delete this.draft.fields[name];
+            this.draft.fields[newName] = newDef;
+            this.render();
+          }
+        );
         modal.open();
       });
       const delBtn = actions.createEl("button", { text: "Remove" });
@@ -3826,7 +3929,9 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
     this.draft = originalDef ? structuredClone(originalDef) : { type: "string" };
   }
   onOpen() {
-    this.titleEl.setText(this.originalName ? `Edit field: ${this.originalName}` : "Add field");
+    this.titleEl.setText(
+      this.originalName ? `Edit field: ${this.originalName}` : "Add field"
+    );
     this.render();
   }
   render() {
@@ -3864,7 +3969,10 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
     const actions = contentEl.createDiv({ cls: "mdbase-actions-row" });
     const cancelBtn = actions.createEl("button", { text: "Cancel" });
     cancelBtn.addEventListener("click", () => this.close());
-    const saveBtn = actions.createEl("button", { text: "Save field", cls: "mod-cta" });
+    const saveBtn = actions.createEl("button", {
+      text: "Save field",
+      cls: "mod-cta"
+    });
     saveBtn.addEventListener("click", () => {
       if (!this.draftName) {
         new import_obsidian3.Notice("Field name is required.");
@@ -3933,7 +4041,9 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
     if (type === "list") {
       new import_obsidian3.Setting(el).setName("Element type").addDropdown((d) => {
         var _a;
-        const elementTypes = FIELD_TYPES.filter((f) => f !== "list" && f !== "object");
+        const elementTypes = FIELD_TYPES.filter(
+          (f) => f !== "list" && f !== "object"
+        );
         for (const ft of elementTypes) d.addOption(ft, ft);
         return d.setValue((_a = this.draft.element_type) != null ? _a : "string").onChange((v) => {
           this.draft.element_type = v;
@@ -4030,12 +4140,16 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
     const errors = fileIssues.filter((i) => i.severity === "error").length;
     const warnings = fileIssues.filter((i) => i.severity === "warning").length;
     if (errors > 0) {
-      this.statusBarItem.setText(`mdbase: ${errors} error${errors > 1 ? "s" : ""}`);
+      this.statusBarItem.setText(
+        `mdbase: ${errors} error${errors > 1 ? "s" : ""}`
+      );
       this.statusBarItem.addClass("mdbase-status-error");
       this.statusBarItem.removeClass("mdbase-status-warning");
       this.statusBarItem.removeClass("mdbase-status-ok");
     } else if (warnings > 0) {
-      this.statusBarItem.setText(`mdbase: ${warnings} warning${warnings > 1 ? "s" : ""}`);
+      this.statusBarItem.setText(
+        `mdbase: ${warnings} warning${warnings > 1 ? "s" : ""}`
+      );
       this.statusBarItem.addClass("mdbase-status-warning");
       this.statusBarItem.removeClass("mdbase-status-error");
       this.statusBarItem.removeClass("mdbase-status-ok");
@@ -4073,7 +4187,9 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
       const fileIssues = validateFile(file.path, fm, matched, this.config);
       this.issues.set(file.path, fileIssues);
       totalErrors += fileIssues.filter((i) => i.severity === "error").length;
-      totalWarnings += fileIssues.filter((i) => i.severity === "warning").length;
+      totalWarnings += fileIssues.filter(
+        (i) => i.severity === "warning"
+      ).length;
     }
     new import_obsidian4.Notice(
       `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`
@@ -4091,18 +4207,24 @@ var ValidationModal = class extends import_obsidian4.Modal {
     const { contentEl } = this;
     contentEl.addClass("mdbase-validation-modal");
     if (this.fileIssues.length === 0) {
-      contentEl.createEl("p", { text: "No issues found. \u2713", cls: "mdbase-status-ok" });
+      contentEl.createEl("p", {
+        text: "No issues found. \u2713",
+        cls: "mdbase-status-ok"
+      });
       return;
     }
     const list = contentEl.createDiv({ cls: "mdbase-issue-list" });
     for (const issue of this.fileIssues) {
-      const item = list.createDiv({ cls: `mdbase-issue-item ${issue.severity}` });
+      const item = list.createDiv({
+        cls: `mdbase-issue-item ${issue.severity}`
+      });
       item.createDiv({ cls: "mdbase-issue-field", text: issue.field });
       item.createDiv({ cls: "mdbase-issue-message", text: issue.message });
       const meta = [];
       if (issue.type) meta.push(`type: ${issue.type}`);
       if (issue.code) meta.push(issue.code);
-      if (meta.length) item.createDiv({ cls: "mdbase-issue-type", text: meta.join(" \xB7 ") });
+      if (meta.length)
+        item.createDiv({ cls: "mdbase-issue-type", text: meta.join(" \xB7 ") });
     }
   }
   onClose() {
