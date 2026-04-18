@@ -1,6 +1,10 @@
 import { App, Modal, Notice, Plugin, TFile } from "obsidian";
 import type { MdbaseConfig, TypeDefinition, ValidationIssue } from "./types.ts";
-import { CONFIG_FILENAME, createDefaultConfig, loadConfig } from "./collection/config.ts";
+import {
+  CONFIG_FILENAME,
+  createDefaultConfig,
+  loadConfig,
+} from "./collection/config.ts";
 import { loadTypes } from "./collection/typeLoader.ts";
 import { matchFileToTypes } from "./matching/matcher.ts";
 import { validateFile } from "./validation/validator.ts";
@@ -56,7 +60,7 @@ export default class MdbasePlugin extends Plugin {
         if (file.path === CONFIG_FILENAME) {
           this.reload();
         }
-      })
+      }),
     );
   }
 
