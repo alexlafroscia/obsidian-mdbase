@@ -40,7 +40,7 @@ export default class MdbasePlugin extends Plugin {
         if (file instanceof TFile && file.extension === "md") {
           this.validateAndDisplay(file);
         }
-      })
+      }),
     );
 
     this.registerEvent(
@@ -48,7 +48,7 @@ export default class MdbasePlugin extends Plugin {
         if (file.extension === "md") {
           this.validateAndDisplay(file);
         }
-      })
+      }),
     );
   }
 
@@ -60,7 +60,9 @@ export default class MdbasePlugin extends Plugin {
 
   async reload(): Promise<void> {
     this.config = await loadConfig(this.app.vault);
-    this.types = this.config ? await loadTypes(this.app.vault, this.config) : new Map();
+    this.types = this.config
+      ? await loadTypes(this.app.vault, this.config)
+      : new Map();
     this.issues.clear();
     const activeFile = this.app.workspace.getActiveFile();
     if (activeFile) {
@@ -73,7 +75,8 @@ export default class MdbasePlugin extends Plugin {
       this.statusBarItem.setText("mdbase: no collection");
       return;
     }
-    const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
+    const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
+      {}) as Record<string, unknown>;
     const matched = matchFileToTypes(file.path, fm, this.types, this.config);
     const fileIssues = validateFile(file.path, fm, matched, this.config);
     this.issues.set(file.path, fileIssues);
@@ -83,7 +86,7 @@ export default class MdbasePlugin extends Plugin {
   private updateStatusBar(
     file: TFile,
     fileIssues: ValidationIssue[],
-    hasType: boolean
+    hasType: boolean,
   ): void {
     if (!hasType) {
       this.statusBarItem.setText("mdbase: untyped");
@@ -93,12 +96,16 @@ export default class MdbasePlugin extends Plugin {
     const errors = fileIssues.filter((i) => i.severity === "error").length;
     const warnings = fileIssues.filter((i) => i.severity === "warning").length;
     if (errors > 0) {
-      this.statusBarItem.setText(`mdbase: ${errors} error${errors > 1 ? "s" : ""}`);
+      this.statusBarItem.setText(
+        `mdbase: ${errors} error${errors > 1 ? "s" : ""}`,
+      );
       this.statusBarItem.addClass("mdbase-status-error");
       this.statusBarItem.removeClass("mdbase-status-warning");
       this.statusBarItem.removeClass("mdbase-status-ok");
     } else if (warnings > 0) {
-      this.statusBarItem.setText(`mdbase: ${warnings} warning${warnings > 1 ? "s" : ""}`);
+      this.statusBarItem.setText(
+        `mdbase: ${warnings} warning${warnings > 1 ? "s" : ""}`,
+      );
       this.statusBarItem.addClass("mdbase-status-warning");
       this.statusBarItem.removeClass("mdbase-status-error");
       this.statusBarItem.removeClass("mdbase-status-ok");
@@ -132,16 +139,19 @@ export default class MdbasePlugin extends Plugin {
     this.issues.clear();
 
     for (const file of files) {
-      const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
+      const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
+        {}) as Record<string, unknown>;
       const matched = matchFileToTypes(file.path, fm, this.types, this.config);
       const fileIssues = validateFile(file.path, fm, matched, this.config);
       this.issues.set(file.path, fileIssues);
       totalErrors += fileIssues.filter((i) => i.severity === "error").length;
-      totalWarnings += fileIssues.filter((i) => i.severity === "warning").length;
+      totalWarnings += fileIssues.filter(
+        (i) => i.severity === "warning",
+      ).length;
     }
 
     new Notice(
-      `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`
+      `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`,
     );
   }
 }
@@ -162,19 +172,25 @@ class ValidationModal extends Modal {
     contentEl.addClass("mdbase-validation-modal");
 
     if (this.fileIssues.length === 0) {
-      contentEl.createEl("p", { text: "No issues found. ✓", cls: "mdbase-status-ok" });
+      contentEl.createEl("p", {
+        text: "No issues found. ✓",
+        cls: "mdbase-status-ok",
+      });
       return;
     }
 
     const list = contentEl.createDiv({ cls: "mdbase-issue-list" });
     for (const issue of this.fileIssues) {
-      const item = list.createDiv({ cls: `mdbase-issue-item ${issue.severity}` });
+      const item = list.createDiv({
+        cls: `mdbase-issue-item ${issue.severity}`,
+      });
       item.createDiv({ cls: "mdbase-issue-field", text: issue.field });
       item.createDiv({ cls: "mdbase-issue-message", text: issue.message });
       const meta: string[] = [];
       if (issue.type) meta.push(`type: ${issue.type}`);
       if (issue.code) meta.push(issue.code);
-      if (meta.length) item.createDiv({ cls: "mdbase-issue-type", text: meta.join(" · ") });
+      if (meta.length)
+        item.createDiv({ cls: "mdbase-issue-type", text: meta.join(" · ") });
     }
   }
 

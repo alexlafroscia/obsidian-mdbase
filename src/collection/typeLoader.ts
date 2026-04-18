@@ -3,7 +3,10 @@ import { parseYaml, stringifyYaml } from "obsidian";
 import type { MdbaseConfig, TypeDefinition } from "../types.ts";
 import { getTypesFolder } from "../types.ts";
 
-function splitFrontmatter(content: string): { frontmatter: string; body: string } {
+function splitFrontmatter(content: string): {
+  frontmatter: string;
+  body: string;
+} {
   if (!content.startsWith("---")) {
     return { frontmatter: "", body: content };
   }
@@ -38,7 +41,7 @@ function serializeTypeFile(typeDef: TypeDefinition, body = ""): string {
 
 export async function loadTypes(
   vault: Vault,
-  config: MdbaseConfig
+  config: MdbaseConfig,
 ): Promise<Map<string, TypeDefinition>> {
   const types = new Map<string, TypeDefinition>();
   const folder = getTypesFolder(config);
@@ -65,7 +68,7 @@ export async function saveType(
   vault: Vault,
   config: MdbaseConfig,
   typeDef: TypeDefinition,
-  body = ""
+  body = "",
 ): Promise<void> {
   const folder = getTypesFolder(config);
   const filePath = `${folder}/${typeDef.name}.md`;
@@ -91,7 +94,7 @@ export async function saveType(
 export async function deleteType(
   vault: Vault,
   config: MdbaseConfig,
-  name: string
+  name: string,
 ): Promise<void> {
   const folder = getTypesFolder(config);
   const filePath = `${folder}/${name}.md`;

@@ -1,4 +1,8 @@
-import type { MdbaseConfig, TypeDefinition, ValidationIssue } from "../types.ts";
+import type {
+  MdbaseConfig,
+  TypeDefinition,
+  ValidationIssue,
+} from "../types.ts";
 import { getDefaultStrict, getDefaultValidation } from "../types.ts";
 import { validateFieldValue } from "../schema/fieldTypes.ts";
 
@@ -8,7 +12,7 @@ export function validateFile(
   filePath: string,
   frontmatter: Record<string, unknown>,
   matchedTypes: TypeDefinition[],
-  config: MdbaseConfig
+  config: MdbaseConfig,
 ): ValidationIssue[] {
   const mode = getDefaultValidation(config);
   if (mode === "off") return [];
@@ -17,7 +21,12 @@ export function validateFile(
   const issues: ValidationIssue[] = [];
 
   for (const typeDef of matchedTypes) {
-    const typeIssues = validateAgainstType(filePath, frontmatter, typeDef, config);
+    const typeIssues = validateAgainstType(
+      filePath,
+      frontmatter,
+      typeDef,
+      config,
+    );
     issues.push(...typeIssues);
   }
 
@@ -28,7 +37,7 @@ function validateAgainstType(
   filePath: string,
   frontmatter: Record<string, unknown>,
   typeDef: TypeDefinition,
-  config: MdbaseConfig
+  config: MdbaseConfig,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const fields = typeDef.fields ?? {};

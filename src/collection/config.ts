@@ -18,7 +18,10 @@ export async function loadConfig(vault: Vault): Promise<MdbaseConfig | null> {
   }
 }
 
-export async function saveConfig(vault: Vault, config: MdbaseConfig): Promise<void> {
+export async function saveConfig(
+  vault: Vault,
+  config: MdbaseConfig,
+): Promise<void> {
   const content = stringifyYaml(config as Record<string, unknown>);
   const file = vault.getFileByPath(CONFIG_FILENAME);
   if (file) {
