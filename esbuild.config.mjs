@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import sveltePlugin from "esbuild-svelte";
 
 const prod = process.argv[2] === "production";
 
@@ -23,6 +24,7 @@ const context = await esbuild.context({
     "@lezer/lr",
     ...builtins,
   ],
+  plugins: [sveltePlugin({ compilerOptions: { css: "injected" } })],
   format: "cjs",
   target: "es2018",
   logLevel: "info",
