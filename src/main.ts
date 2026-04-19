@@ -1,3 +1,4 @@
+import { mount, unmount } from "svelte";
 import { App, Modal, Notice, Plugin, TFile } from "obsidian";
 import type { MdbaseConfig, TypeDefinition, ValidationIssue } from "./types.ts";
 import {
@@ -9,6 +10,7 @@ import { loadTypes } from "./collection/typeLoader.ts";
 import { matchFileToTypes } from "./matching/matcher.ts";
 import { validateFile } from "./validation/validator.ts";
 import { MdbaseSettingTab } from "./settings/SettingsTab.ts";
+import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
   config: MdbaseConfig | null = null;
@@ -175,6 +177,7 @@ export default class MdbasePlugin extends Plugin {
 class ValidationModal extends Modal {
   file: TFile;
   fileIssues: ValidationIssue[];
+  private component: ReturnType<typeof mount> | null = null;
 
   constructor(app: App, file: TFile, issues: ValidationIssue[]) {
     super(app);
@@ -184,33 +187,14 @@ class ValidationModal extends Modal {
 
   onOpen(): void {
     this.titleEl.setText(`Validation: ${this.file.name}`);
-    const { contentEl } = this;
-    contentEl.addClass("mdbase-validation-modal");
-
-    if (this.fileIssues.length === 0) {
-      contentEl.createEl("p", {
-        text: "No issues found. ✓",
-        cls: "mdbase-status-ok",
-      });
-      return;
-    }
-
-    const list = contentEl.createDiv({ cls: "mdbase-issue-list" });
-    for (const issue of this.fileIssues) {
-      const item = list.createDiv({
-        cls: `mdbase-issue-item ${issue.severity}`,
-      });
-      item.createDiv({ cls: "mdbase-issue-field", text: issue.field });
-      item.createDiv({ cls: "mdbase-issue-message", text: issue.message });
-      const meta: string[] = [];
-      if (issue.type) meta.push(`type: ${issue.type}`);
-      if (issue.code) meta.push(issue.code);
-      if (meta.length)
-        item.createDiv({ cls: "mdbase-issue-type", text: meta.join(" · ") });
-    }
+    this.component = mount(ValidationModalComponent, {
+      target: this.contentEl,
+      props: { issues: this.fileIssues },
+    });
   }
 
   onClose(): void {
+    if (this.component) unmount(this.component);
     this.contentEl.empty();
   }
 }
