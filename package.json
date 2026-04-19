@@ -10,6 +10,7 @@
     "test:output": "pnpm run build && git diff --exit-code main.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "typecheck": "svelte-check",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -34,6 +35,7 @@
     "obsidian": "^1.4.11",
     "prettier": "^3.8.3",
     "svelte": "^5.55.4",
+    "svelte-check": "^4.4.6",
     "tslib": "^2.6.3",
     "typescript": "^5.4.5"
   },
