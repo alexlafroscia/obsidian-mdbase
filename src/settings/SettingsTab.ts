@@ -368,6 +368,7 @@ class TypeEditorModal extends Modal {
         this.draft.fields ??= {};
         const modal = new FieldEditorModal(
           this.app,
+          this.plugin,
           null,
           null,
           (name, def) => {
@@ -429,6 +430,7 @@ class TypeEditorModal extends Modal {
       editBtn.addEventListener("click", () => {
         const modal = new FieldEditorModal(
           this.app,
+          this.plugin,
           name,
           def,
           (newName, newDef) => {
@@ -457,16 +459,19 @@ class FieldEditorModal extends Modal {
   originalName: string | null;
   originalDef: FieldDef | null;
   onSave: (name: string, def: FieldDef) => void;
+  plugin: MdbasePlugin;
   draft: FieldDef;
   draftName: string;
 
   constructor(
     app: App,
+    plugin: MdbasePlugin,
     originalName: string | null,
     originalDef: FieldDef | null,
     onSave: (name: string, def: FieldDef) => void,
   ) {
     super(app);
+    this.plugin = plugin;
     this.originalName = originalName;
     this.originalDef = originalDef;
     this.onSave = onSave;
@@ -586,6 +591,19 @@ class FieldEditorModal extends Modal {
               .filter(Boolean);
           }),
         );
+    }
+
+    if (type === "link") {
+      new Setting(el)
+        .setName("Target type")
+        .setDesc("Restrict linked files to a specific mdbase type.")
+        .addDropdown((d) => {
+          d.addOption("", "Any");
+          for (const name of this.plugin.types.keys()) d.addOption(name, name);
+          return d.setValue(this.draft.target ?? "").onChange((v) => {
+            this.draft.target = v || undefined;
+          });
+        });
     }
 
     if (type === "list") {

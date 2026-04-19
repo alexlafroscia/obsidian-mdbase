@@ -10,6 +10,10 @@ import { loadTypes } from "./collection/typeLoader.ts";
 import { matchFileToTypes } from "./matching/matcher.ts";
 import { validateFile } from "./validation/validator.ts";
 import { MdbaseSettingTab } from "./settings/SettingsTab.ts";
+import {
+  registerLinkPropertyWidget,
+  unregisterLinkPropertyWidget,
+} from "./properties/LinkPropertyWidget.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
@@ -62,9 +66,16 @@ export default class MdbasePlugin extends Plugin {
       }),
     );
 
+    // Custom property editors
+    registerLinkPropertyWidget(this);
+
     this.app.workspace.onLayoutReady(async () => {
       await this.reload();
     });
+  }
+
+  onunload(): void {
+    unregisterLinkPropertyWidget(this);
   }
 
   async initializeCollection(): Promise<void> {

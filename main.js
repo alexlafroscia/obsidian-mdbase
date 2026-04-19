@@ -8296,7 +8296,7 @@ if (dev_fallback_default) {
 }
 
 // src/main.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/collection/config.ts
 var import_obsidian = require("obsidian");
@@ -9122,6 +9122,7 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
         (_b3 = (_a5 = this.draft).fields) != null ? _b3 : _a5.fields = {};
         const modal = new FieldEditorModal(
           this.app,
+          this.plugin,
           null,
           null,
           (name, def) => {
@@ -9176,6 +9177,7 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
       editBtn.addEventListener("click", () => {
         const modal = new FieldEditorModal(
           this.app,
+          this.plugin,
           name,
           def,
           (newName, newDef) => {
@@ -9198,8 +9200,9 @@ var TypeEditorModal = class extends import_obsidian3.Modal {
   }
 };
 var FieldEditorModal = class extends import_obsidian3.Modal {
-  constructor(app, originalName, originalDef, onSave) {
+  constructor(app, plugin, originalName, originalDef, onSave) {
     super(app);
+    this.plugin = plugin;
     this.originalName = originalName;
     this.originalDef = originalDef;
     this.onSave = onSave;
@@ -9316,6 +9319,16 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
         }
       );
     }
+    if (type === "link") {
+      new import_obsidian3.Setting(el).setName("Target type").setDesc("Restrict linked files to a specific mdbase type.").addDropdown((d) => {
+        var _a5;
+        d.addOption("", "Any");
+        for (const name of this.plugin.types.keys()) d.addOption(name, name);
+        return d.setValue((_a5 = this.draft.target) != null ? _a5 : "").onChange((v) => {
+          this.draft.target = v || void 0;
+        });
+      });
+    }
     if (type === "list") {
       new import_obsidian3.Setting(el).setName("Element type").addDropdown((d) => {
         var _a5;
@@ -9341,6 +9354,93 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
     this.contentEl.empty();
   }
 };
+
+// src/properties/LinkPropertyWidget.ts
+var import_obsidian4 = require("obsidian");
+var LinkFilePicker = class extends import_obsidian4.FuzzySuggestModal {
+  constructor(app, files, onChoose) {
+    super(app);
+    this.files = files;
+    this.onChoose = onChoose;
+    this.setPlaceholder("Search for a file...");
+  }
+  getItems() {
+    return this.files;
+  }
+  getItemText(file) {
+    return file.path;
+  }
+  onChooseItem(file) {
+    this.onChoose(file);
+  }
+};
+function getLinkType(plugin, filePath, propertyKey) {
+  var _a5, _b3, _c2, _d;
+  if (!plugin.mdbaseConfig) return void 0;
+  const file = plugin.app.vault.getAbstractFileByPath(filePath);
+  if (!(file instanceof import_obsidian4.TFile)) return void 0;
+  const fm = (_b3 = (_a5 = plugin.app.metadataCache.getFileCache(file)) == null ? void 0 : _a5.frontmatter) != null ? _b3 : {};
+  const matchedTypes = matchFileToTypes(
+    file.path,
+    fm,
+    plugin.types,
+    plugin.mdbaseConfig
+  );
+  for (const typeDef of matchedTypes) {
+    const linkType = (_d = (_c2 = typeDef.fields) == null ? void 0 : _c2[propertyKey]) == null ? void 0 : _d.target;
+    if (linkType) return linkType;
+  }
+  return void 0;
+}
+function getCandidateFiles(plugin, linkType) {
+  const files = plugin.app.vault.getMarkdownFiles();
+  if (!linkType || !plugin.mdbaseConfig) return files;
+  const lower = linkType.toLowerCase();
+  return files.filter((f) => {
+    var _a5, _b3;
+    const fm = (_b3 = (_a5 = plugin.app.metadataCache.getFileCache(f)) == null ? void 0 : _a5.frontmatter) != null ? _b3 : {};
+    const matched = matchFileToTypes(f.path, fm, plugin.types, plugin.config);
+    return matched.some((t) => t.name.toLowerCase() === lower);
+  });
+}
+function registerLinkPropertyWidget(plugin) {
+  const metadataTypeManager = plugin.app.metadataTypeManager;
+  if (!metadataTypeManager) return;
+  metadataTypeManager.registeredTypeWidgets["mdbase-link"] = {
+    type: "mdbase-link",
+    icon: "link",
+    name: () => "Link (mdbase)",
+    validate: (value) => value == null || typeof value === "string",
+    render(el, _something, ctx) {
+      var _a5, _b3;
+      const { key: key2, value, onChange } = ctx;
+      const filePath = (_b3 = ctx.sourcePath) != null ? _b3 : (_a5 = plugin.app.workspace.getActiveFile()) == null ? void 0 : _a5.path;
+      el.addClass("mdbase-link-widget");
+      const textEl = el.createSpan({ cls: "mdbase-link-value" });
+      textEl.setText(typeof value === "string" ? value : "");
+      const btn = el.createEl("button", {
+        cls: "mdbase-link-pick",
+        text: "Pick"
+      });
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const linkType = filePath ? getLinkType(plugin, filePath, key2) : void 0;
+        const candidates = getCandidateFiles(plugin, linkType);
+        new LinkFilePicker(plugin.app, candidates, (file) => {
+          const wikilink = `[[${file.basename}]]`;
+          onChange(wikilink);
+          textEl.setText(wikilink);
+        }).open();
+      });
+    }
+  };
+}
+function unregisterLinkPropertyWidget(plugin) {
+  const metadataTypeManager = plugin.app.metadataTypeManager;
+  if (!metadataTypeManager) return;
+  delete metadataTypeManager.registeredTypeWidgets["mdbase-link"];
+}
 
 // node_modules/.pnpm/svelte@5.55.4/node_modules/svelte/src/version.js
 var PUBLIC_VERSION = "5";
@@ -9430,7 +9530,7 @@ function ValidationModal($$anchor, $$props) {
 }
 
 // src/main.ts
-var MdbasePlugin = class extends import_obsidian4.Plugin {
+var MdbasePlugin = class extends import_obsidian5.Plugin {
   constructor() {
     super(...arguments);
     this.mdbaseConfig = null;
@@ -9453,7 +9553,7 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
     });
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (file instanceof import_obsidian4.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian5.TFile && file.extension === "md") {
           this.validateAndDisplay(file);
         }
       })
@@ -9472,14 +9572,18 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
         }
       })
     );
+    registerLinkPropertyWidget(this);
     this.app.workspace.onLayoutReady(async () => {
       await this.reload();
     });
   }
+  onunload() {
+    unregisterLinkPropertyWidget(this);
+  }
   async initializeCollection() {
     this.mdbaseConfig = await createDefaultConfig(this.app.vault);
     this.types = /* @__PURE__ */ new Map();
-    new import_obsidian4.Notice("Collection initialized! mdbase.yaml created at vault root.");
+    new import_obsidian5.Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
   async loadConfig() {
     this.mdbaseConfig = await loadConfig(this.app.vault);
@@ -9543,7 +9647,7 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
     var _a5;
     const file = this.app.workspace.getActiveFile();
     if (!file) {
-      new import_obsidian4.Notice("No active file.");
+      new import_obsidian5.Notice("No active file.");
       return;
     }
     const fileIssues = (_a5 = this.issues.get(file.path)) != null ? _a5 : [];
@@ -9553,7 +9657,7 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
   async validateAllFiles() {
     var _a5, _b3;
     if (!this.mdbaseConfig) {
-      new import_obsidian4.Notice("No mdbase collection found.");
+      new import_obsidian5.Notice("No mdbase collection found.");
       return;
     }
     const files = this.app.vault.getMarkdownFiles();
@@ -9580,12 +9684,12 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
         (i) => i.severity === "warning"
       ).length;
     }
-    new import_obsidian4.Notice(
+    new import_obsidian5.Notice(
       `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`
     );
   }
 };
-var ValidationModal2 = class extends import_obsidian4.Modal {
+var ValidationModal2 = class extends import_obsidian5.Modal {
   constructor(app, file, issues) {
     super(app);
     this.component = null;

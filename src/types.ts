@@ -61,6 +61,8 @@ export interface FieldDef {
   max_items?: number;
   // object
   fields?: Record<string, FieldDef>;
+  // link
+  target?: string;
 }
 
 export interface MatchRule {
