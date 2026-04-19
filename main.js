@@ -8390,13 +8390,16 @@ ${fm}
 ---
 ${body}`;
 }
+function isFile(child2) {
+  return "extension" in child2;
+}
 async function loadTypes(vault, config) {
   const types = /* @__PURE__ */ new Map();
   const folder = getTypesFolder(config);
   const folderObj = vault.getFolderByPath(folder);
   if (!folderObj) return types;
   for (const child2 of folderObj.children) {
-    if (!("extension" in child2) || child2.extension !== "md") continue;
+    if (!isFile(child2) || child2.extension !== "md") continue;
     try {
       const content = await vault.read(child2);
       const typeDef = parseTypeFile(content);
