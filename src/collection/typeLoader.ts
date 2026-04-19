@@ -1,4 +1,4 @@
-import type { Vault } from "obsidian";
+import type { TAbstractFile, TFile, Vault } from "obsidian";
 import { parseYaml, stringifyYaml } from "obsidian";
 import type { MdbaseConfig, TypeDefinition } from "../types.ts";
 import { getTypesFolder } from "../types.ts";
@@ -39,6 +39,10 @@ function serializeTypeFile(typeDef: TypeDefinition, body = ""): string {
   return `---\n${fm}\n---\n${body}`;
 }
 
+function isFile(child: TAbstractFile): child is TFile {
+  return "extension" in child;
+}
+
 export async function loadTypes(
   vault: Vault,
   config: MdbaseConfig,
@@ -49,7 +53,7 @@ export async function loadTypes(
   if (!folderObj) return types;
 
   for (const child of folderObj.children) {
-    if (!("extension" in child) || child.extension !== "md") continue;
+    if (!isFile(child) || child.extension !== "md") continue;
     try {
       const content = await vault.read(child);
       const typeDef = parseTypeFile(content);

@@ -22,7 +22,7 @@ export async function saveConfig(
   vault: Vault,
   config: MdbaseConfig,
 ): Promise<void> {
-  const content = stringifyYaml(config as Record<string, unknown>);
+  const content = stringifyYaml(config);
   const file = vault.getFileByPath(CONFIG_FILENAME);
   if (file) {
     await vault.modify(file, content);
