@@ -9398,13 +9398,8 @@ function getLinkType(plugin, filePath, propertyKey) {
 }
 function getCandidateFiles(plugin, target) {
   const files = plugin.app.vault.getMarkdownFiles();
-<<<<<<< HEAD
-  if (!linkType || !plugin.mdbaseConfig) return files;
-  const lower = linkType.toLowerCase();
-=======
-  if (!target || !plugin.config) return files;
+  if (!target || !plugin.mdbaseConfig) return files;
   const lower = target.toLowerCase();
->>>>>>> 3c0b62c (use a text input to set the link destination)
   return files.filter((f) => {
     var _a5, _b3;
     const fm = (_b3 = (_a5 = plugin.app.metadataCache.getFileCache(f)) == null ? void 0 : _a5.frontmatter) != null ? _b3 : {};

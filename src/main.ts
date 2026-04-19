@@ -1,3 +1,6 @@
+// Register private types
+import type {} from "obsidian-typings";
+
 import { mount, unmount } from "svelte";
 import { App, Modal, Notice, Plugin, TFile } from "obsidian";
 import type { MdbaseConfig, TypeDefinition, ValidationIssue } from "./types.ts";
