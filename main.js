@@ -9357,21 +9357,25 @@ var FieldEditorModal = class extends import_obsidian3.Modal {
 
 // src/properties/LinkPropertyWidget.ts
 var import_obsidian4 = require("obsidian");
-var LinkFilePicker = class extends import_obsidian4.FuzzySuggestModal {
-  constructor(app, files, onChoose) {
-    super(app);
-    this.files = files;
+var LinkSuggest = class extends import_obsidian4.AbstractInputSuggest {
+  constructor(app, inputEl, getCandidates, onChoose) {
+    super(app, inputEl);
+    this.getCandidates = getCandidates;
     this.onChoose = onChoose;
-    this.setPlaceholder("Search for a file...");
   }
-  getItems() {
-    return this.files;
+  getSuggestions(query) {
+    const lower = query.toLowerCase().replace(/^\[\[/, "");
+    return this.getCandidates().filter(
+      (f) => f.basename.toLowerCase().includes(lower) || f.path.toLowerCase().includes(lower)
+    );
   }
-  getItemText(file) {
-    return file.path;
+  renderSuggestion(file, el) {
+    el.createDiv({ text: file.basename });
+    el.createDiv({ cls: "mdbase-link-suggest-path", text: file.path });
   }
-  onChooseItem(file) {
+  selectSuggestion(file, _evt) {
     this.onChoose(file);
+    this.close();
   }
 };
 function getLinkType(plugin, filePath, propertyKey) {
@@ -9387,15 +9391,20 @@ function getLinkType(plugin, filePath, propertyKey) {
     plugin.mdbaseConfig
   );
   for (const typeDef of matchedTypes) {
-    const linkType = (_d = (_c2 = typeDef.fields) == null ? void 0 : _c2[propertyKey]) == null ? void 0 : _d.target;
-    if (linkType) return linkType;
+    const target = (_d = (_c2 = typeDef.fields) == null ? void 0 : _c2[propertyKey]) == null ? void 0 : _d.target;
+    if (target) return target;
   }
   return void 0;
 }
-function getCandidateFiles(plugin, linkType) {
+function getCandidateFiles(plugin, target) {
   const files = plugin.app.vault.getMarkdownFiles();
+<<<<<<< HEAD
   if (!linkType || !plugin.mdbaseConfig) return files;
   const lower = linkType.toLowerCase();
+=======
+  if (!target || !plugin.config) return files;
+  const lower = target.toLowerCase();
+>>>>>>> 3c0b62c (use a text input to set the link destination)
   return files.filter((f) => {
     var _a5, _b3;
     const fm = (_b3 = (_a5 = plugin.app.metadataCache.getFileCache(f)) == null ? void 0 : _a5.frontmatter) != null ? _b3 : {};
@@ -9410,31 +9419,33 @@ function registerLinkPropertyWidget(plugin) {
     type: "mdbase-link",
     icon: "link",
     name: () => "Link (mdbase)",
-    validate: (value) => {
-      return value == null || typeof value === "string";
-    },
+    validate: (value) => value == null || typeof value === "string",
     render(el, value, ctx) {
       var _a5, _b3;
       const { key: key2, onChange } = ctx;
       const filePath = (_b3 = ctx.sourcePath) != null ? _b3 : (_a5 = plugin.app.workspace.getActiveFile()) == null ? void 0 : _a5.path;
-      el.addClass("mdbase-link-widget");
-      const textEl = el.createSpan({ cls: "mdbase-link-value" });
-      textEl.setText(value != null ? value : "");
-      const btn = el.createEl("button", {
-        cls: "mdbase-link-pick",
-        text: "Pick"
+      const input = el.createEl("input", {
+        type: "text",
+        placeholder: "Empty",
+        cls: "mdbase-link-input"
       });
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const linkType = filePath ? getLinkType(plugin, filePath, key2) : void 0;
-        const candidates = getCandidateFiles(plugin, linkType);
-        new LinkFilePicker(plugin.app, candidates, (file) => {
+      input.value = value != null ? value : "";
+      input.addEventListener("change", () => {
+        onChange(input.value || null);
+      });
+      new LinkSuggest(
+        plugin.app,
+        input,
+        () => {
+          const target = filePath ? getLinkType(plugin, filePath, key2) : void 0;
+          return getCandidateFiles(plugin, target);
+        },
+        (file) => {
           const wikilink = `[[${file.basename}]]`;
+          input.value = wikilink;
           onChange(wikilink);
-          textEl.setText(wikilink);
-        }).open();
-      });
+        }
+      );
     }
   };
 }

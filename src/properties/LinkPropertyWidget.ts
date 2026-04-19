@@ -1,27 +1,34 @@
-import { App, FuzzySuggestModal, TFile } from "obsidian";
+import { AbstractInputSuggest, App, TFile } from "obsidian";
 import type MdbasePlugin from "../main.ts";
 import { matchFileToTypes } from "../matching/matcher.ts";
 
-class LinkFilePicker extends FuzzySuggestModal<TFile> {
+class LinkSuggest extends AbstractInputSuggest<TFile> {
   constructor(
     app: App,
-    private files: TFile[],
+    inputEl: HTMLInputElement,
+    private getCandidates: () => TFile[],
     private onChoose: (file: TFile) => void,
   ) {
-    super(app);
-    this.setPlaceholder("Search for a file...");
+    super(app, inputEl);
   }
 
-  getItems(): TFile[] {
-    return this.files;
+  getSuggestions(query: string): TFile[] {
+    const lower = query.toLowerCase().replace(/^\[\[/, "");
+    return this.getCandidates().filter(
+      (f) =>
+        f.basename.toLowerCase().includes(lower) ||
+        f.path.toLowerCase().includes(lower),
+    );
   }
 
-  getItemText(file: TFile): string {
-    return file.path;
+  renderSuggestion(file: TFile, el: HTMLElement): void {
+    el.createDiv({ text: file.basename });
+    el.createDiv({ cls: "mdbase-link-suggest-path", text: file.path });
   }
 
-  onChooseItem(file: TFile): void {
+  selectSuggestion(file: TFile, _evt: MouseEvent | KeyboardEvent): void {
     this.onChoose(file);
+    this.close();
   }
 }
 
@@ -45,19 +52,19 @@ function getLinkType(
     plugin.mdbaseConfig,
   );
   for (const typeDef of matchedTypes) {
-    const linkType = typeDef.fields?.[propertyKey]?.target;
-    if (linkType) return linkType;
+    const target = typeDef.fields?.[propertyKey]?.target;
+    if (target) return target;
   }
   return undefined;
 }
 
 function getCandidateFiles(
   plugin: MdbasePlugin,
-  linkType: string | undefined,
+  target: string | undefined,
 ): TFile[] {
   const files = plugin.app.vault.getMarkdownFiles();
-  if (!linkType || !plugin.mdbaseConfig) return files;
-  const lower = linkType.toLowerCase();
+  if (!target || !plugin.mdbaseConfig) return files;
+  const lower = target.toLowerCase();
   return files.filter((f) => {
     const fm = (plugin.app.metadataCache.getFileCache(f)?.frontmatter ??
       {}) as Record<string, unknown>;
@@ -80,9 +87,7 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
     type: "mdbase-link",
     icon: "link",
     name: () => "Link (mdbase)",
-    validate: (value: unknown) => {
-      return value == null || typeof value === "string";
-    },
+    validate: (value: unknown) => value == null || typeof value === "string",
     render(
       el: HTMLElement,
       value: string | null,
@@ -93,31 +98,32 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
       const filePath: string | undefined =
         ctx.sourcePath ?? plugin.app.workspace.getActiveFile()?.path;
 
-      el.addClass("mdbase-link-widget");
+      const input = el.createEl("input", {
+        type: "text",
+        placeholder: "Empty",
+        cls: "mdbase-link-input",
+      });
+      input.value = value ?? "";
 
-      const textEl = el.createSpan({ cls: "mdbase-link-value" });
-      textEl.setText(value ?? "");
-
-      const btn = el.createEl("button", {
-        cls: "mdbase-link-pick",
-        text: "Pick",
+      input.addEventListener("change", () => {
+        onChange(input.value || null);
       });
 
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        const linkType = filePath
-          ? getLinkType(plugin, filePath, key)
-          : undefined;
-        const candidates = getCandidateFiles(plugin, linkType);
-
-        new LinkFilePicker(plugin.app, candidates, (file) => {
+      new LinkSuggest(
+        plugin.app,
+        input,
+        () => {
+          const target = filePath
+            ? getLinkType(plugin, filePath, key)
+            : undefined;
+          return getCandidateFiles(plugin, target);
+        },
+        (file) => {
           const wikilink = `[[${file.basename}]]`;
+          input.value = wikilink;
           onChange(wikilink);
-          textEl.setText(wikilink);
-        }).open();
-      });
+        },
+      );
     },
   };
 }
