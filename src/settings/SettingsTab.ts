@@ -312,7 +312,7 @@ class TypeEditorModal extends Modal {
       );
 
     // --- Match rules ---
-    contentEl.createEl("h4", { text: "Match Rules (Level 2)" });
+    contentEl.createEl("h4", { text: "Match Rules" });
 
     new Setting(contentEl)
       .setName("Path glob")
