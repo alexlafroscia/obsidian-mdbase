@@ -9473,7 +9473,7 @@ var MdbasePlugin = class extends import_obsidian4.Plugin {
       })
     );
     this.app.workspace.onLayoutReady(async () => {
-      await this.loadConfig();
+      await this.reload();
     });
   }
   async initializeCollection() {

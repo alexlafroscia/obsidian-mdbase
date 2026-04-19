@@ -61,7 +61,7 @@ export default class MdbasePlugin extends Plugin {
     );
 
     this.app.workspace.onLayoutReady(async () => {
-      await this.loadConfig();
+      await this.reload();
     });
   }
 
