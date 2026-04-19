@@ -9378,6 +9378,12 @@ var LinkSuggest = class extends import_obsidian4.AbstractInputSuggest {
     this.close();
   }
 };
+function parseLinkText(raw) {
+  var _a5;
+  const m = raw.match(/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$/);
+  if (m) return { path: m[1], display: (_a5 = m[2]) != null ? _a5 : m[1] };
+  return { path: raw, display: raw };
+}
 function getLinkType(plugin, filePath, propertyKey) {
   var _a5, _b3, _c2, _d;
   if (!plugin.mdbaseConfig) return void 0;
@@ -9415,18 +9421,51 @@ function registerLinkPropertyWidget(plugin) {
     icon: "link",
     name: () => "Link (mdbase)",
     validate: (value) => value == null || typeof value === "string",
-    render(el, value, ctx) {
+    render(el, initialValue, ctx) {
       var _a5, _b3;
       const { key: key2, onChange } = ctx;
       const filePath = (_b3 = ctx.sourcePath) != null ? _b3 : (_a5 = plugin.app.workspace.getActiveFile()) == null ? void 0 : _a5.path;
+      let currentValue = initialValue;
+      const linkEl = el.createEl("a", {
+        cls: "internal-link mdbase-link-display"
+      });
       const input = el.createEl("input", {
         type: "text",
         placeholder: "Empty",
         cls: "mdbase-link-input"
       });
-      input.value = value != null ? value : "";
+      const showView = () => {
+        if (currentValue) {
+          const { path, display } = parseLinkText(currentValue);
+          linkEl.setText(display);
+          linkEl.dataset.href = path;
+          linkEl.style.display = "";
+        } else {
+          linkEl.style.display = "none";
+        }
+        input.style.display = "none";
+      };
+      const showEdit = () => {
+        linkEl.style.display = "none";
+        input.style.display = "";
+        input.value = currentValue != null ? currentValue : "";
+        input.focus();
+      };
+      linkEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (currentValue) {
+          const { path } = parseLinkText(currentValue);
+          plugin.app.workspace.openLinkText(path, filePath != null ? filePath : "", false);
+        }
+      });
+      el.addEventListener("click", () => showEdit());
+      input.addEventListener("blur", () => {
+        setTimeout(showView, 100);
+      });
       input.addEventListener("change", () => {
-        onChange(input.value || null);
+        currentValue = input.value || null;
+        onChange(currentValue);
       });
       new LinkSuggest(
         plugin.app,
@@ -9437,10 +9476,24 @@ function registerLinkPropertyWidget(plugin) {
         },
         (file) => {
           const wikilink = `[[${file.basename}]]`;
+          currentValue = wikilink;
           input.value = wikilink;
           onChange(wikilink);
+          showView();
         }
       );
+      if (currentValue) {
+        showView();
+      } else {
+        input.style.display = "";
+        linkEl.style.display = "none";
+      }
+      return {
+        type: "mdbase-link",
+        focus() {
+          showEdit();
+        }
+      };
     }
   };
 }

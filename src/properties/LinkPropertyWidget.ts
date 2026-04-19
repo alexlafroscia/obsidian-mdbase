@@ -1,4 +1,5 @@
 import { AbstractInputSuggest, App, TFile } from "obsidian";
+
 import type MdbasePlugin from "../main.ts";
 import { matchFileToTypes } from "../matching/matcher.ts";
 
@@ -32,8 +33,11 @@ class LinkSuggest extends AbstractInputSuggest<TFile> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PropertyRenderContext = any;
+function parseLinkText(raw: string): { path: string; display: string } {
+  const m = raw.match(/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$/);
+  if (m) return { path: m[1], display: m[2] ?? m[1] };
+  return { path: raw, display: raw };
+}
 
 function getLinkType(
   plugin: MdbasePlugin,
@@ -79,8 +83,7 @@ function getCandidateFiles(
 }
 
 export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const metadataTypeManager = (plugin.app as any).metadataTypeManager;
+  const metadataTypeManager = plugin.app.metadataTypeManager;
   if (!metadataTypeManager) return;
 
   metadataTypeManager.registeredTypeWidgets["mdbase-link"] = {
@@ -88,25 +91,61 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
     icon: "link",
     name: () => "Link (mdbase)",
     validate: (value: unknown) => value == null || typeof value === "string",
-    render(
-      el: HTMLElement,
-      value: string | null,
-      ctx: PropertyRenderContext,
-    ): void {
+    render(el: HTMLElement, initialValue: string | null, ctx) {
       const { key, onChange } = ctx;
 
       const filePath: string | undefined =
         ctx.sourcePath ?? plugin.app.workspace.getActiveFile()?.path;
 
+      let currentValue = initialValue;
+
+      const linkEl = el.createEl("a", {
+        cls: "internal-link mdbase-link-display",
+      });
       const input = el.createEl("input", {
         type: "text",
         placeholder: "Empty",
         cls: "mdbase-link-input",
       });
-      input.value = value ?? "";
+
+      const showView = () => {
+        if (currentValue) {
+          const { path, display } = parseLinkText(currentValue);
+          linkEl.setText(display);
+          linkEl.dataset.href = path;
+          linkEl.style.display = "";
+        } else {
+          linkEl.style.display = "none";
+        }
+        input.style.display = "none";
+      };
+
+      const showEdit = () => {
+        linkEl.style.display = "none";
+        input.style.display = "";
+        input.value = currentValue ?? "";
+        input.focus();
+      };
+
+      linkEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (currentValue) {
+          const { path } = parseLinkText(currentValue);
+          plugin.app.workspace.openLinkText(path, filePath ?? "", false);
+        }
+      });
+
+      el.addEventListener("click", () => showEdit());
+
+      input.addEventListener("blur", () => {
+        // Defer so suggestion selectSuggestion fires before we hide the input
+        setTimeout(showView, 100);
+      });
 
       input.addEventListener("change", () => {
-        onChange(input.value || null);
+        currentValue = input.value || null;
+        onChange(currentValue);
       });
 
       new LinkSuggest(
@@ -120,10 +159,27 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         },
         (file) => {
           const wikilink = `[[${file.basename}]]`;
+          currentValue = wikilink;
           input.value = wikilink;
           onChange(wikilink);
+          showView();
         },
       );
+
+      // Initial state
+      if (currentValue) {
+        showView();
+      } else {
+        input.style.display = "";
+        linkEl.style.display = "none";
+      }
+
+      return {
+        type: "mdbase-link",
+        focus() {
+          showEdit();
+        },
+      };
     },
   };
 }
