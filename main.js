@@ -9410,14 +9410,16 @@ function registerLinkPropertyWidget(plugin) {
     type: "mdbase-link",
     icon: "link",
     name: () => "Link (mdbase)",
-    validate: (value) => value == null || typeof value === "string",
-    render(el, _something, ctx) {
+    validate: (value) => {
+      return value == null || typeof value === "string";
+    },
+    render(el, value, ctx) {
       var _a5, _b3;
-      const { key: key2, value, onChange } = ctx;
+      const { key: key2, onChange } = ctx;
       const filePath = (_b3 = ctx.sourcePath) != null ? _b3 : (_a5 = plugin.app.workspace.getActiveFile()) == null ? void 0 : _a5.path;
       el.addClass("mdbase-link-widget");
       const textEl = el.createSpan({ cls: "mdbase-link-value" });
-      textEl.setText(typeof value === "string" ? value : "");
+      textEl.setText(value != null ? value : "");
       const btn = el.createEl("button", {
         cls: "mdbase-link-pick",
         text: "Pick"

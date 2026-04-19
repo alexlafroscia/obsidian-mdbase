@@ -80,13 +80,15 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
     type: "mdbase-link",
     icon: "link",
     name: () => "Link (mdbase)",
-    validate: (value: unknown) => value == null || typeof value === "string",
+    validate: (value: unknown) => {
+      return value == null || typeof value === "string";
+    },
     render(
       el: HTMLElement,
-      _something: unknown,
+      value: string | null,
       ctx: PropertyRenderContext,
     ): void {
-      const { key, value, onChange } = ctx;
+      const { key, onChange } = ctx;
 
       const filePath: string | undefined =
         ctx.sourcePath ?? plugin.app.workspace.getActiveFile()?.path;
@@ -94,7 +96,7 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
       el.addClass("mdbase-link-widget");
 
       const textEl = el.createSpan({ cls: "mdbase-link-value" });
-      textEl.setText(typeof value === "string" ? value : "");
+      textEl.setText(value ?? "");
 
       const btn = el.createEl("button", {
         cls: "mdbase-link-pick",
