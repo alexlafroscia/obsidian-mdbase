@@ -24,7 +24,7 @@ const context = await esbuild.context({
     "@lezer/lr",
     ...builtins,
   ],
-  plugins: [sveltePlugin({ compilerOptions: { css: "injected" } })],
+  plugins: [sveltePlugin()],
   format: "cjs",
   target: "es2018",
   logLevel: "info",
