@@ -99,8 +99,9 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
 
       let currentValue = initialValue;
 
-      const linkEl = el.createEl("a", {
-        cls: "internal-link mdbase-link-display",
+      const linkOuter = el.createDiv({ cls: "metadata-link" });
+      const linkInner = linkOuter.createDiv({
+        cls: "metadata-link-inner internal-link",
       });
       const input = el.createEl("input", {
         type: "text",
@@ -111,23 +112,23 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
       const showView = () => {
         if (currentValue) {
           const { path, display } = parseLinkText(currentValue);
-          linkEl.setText(display);
-          linkEl.dataset.href = path;
-          linkEl.style.display = "";
+          linkInner.setText(display);
+          linkInner.dataset.href = path;
+          linkOuter.style.display = "";
         } else {
-          linkEl.style.display = "none";
+          linkOuter.style.display = "none";
         }
         input.style.display = "none";
       };
 
       const showEdit = () => {
-        linkEl.style.display = "none";
+        linkOuter.style.display = "none";
         input.style.display = "";
         input.value = currentValue ?? "";
         input.focus();
       };
 
-      linkEl.addEventListener("click", (e) => {
+      linkInner.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (currentValue) {
@@ -171,7 +172,7 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         showView();
       } else {
         input.style.display = "";
-        linkEl.style.display = "none";
+        linkOuter.style.display = "none";
       }
 
       return {

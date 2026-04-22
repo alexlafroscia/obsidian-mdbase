@@ -9431,8 +9431,9 @@ function registerLinkPropertyWidget(plugin) {
       const { key: key2, onChange } = ctx;
       const filePath = (_b3 = ctx.sourcePath) != null ? _b3 : (_a5 = plugin.app.workspace.getActiveFile()) == null ? void 0 : _a5.path;
       let currentValue = initialValue;
-      const linkEl = el.createEl("a", {
-        cls: "internal-link mdbase-link-display"
+      const linkOuter = el.createDiv({ cls: "metadata-link" });
+      const linkInner = linkOuter.createDiv({
+        cls: "metadata-link-inner internal-link"
       });
       const input = el.createEl("input", {
         type: "text",
@@ -9442,21 +9443,21 @@ function registerLinkPropertyWidget(plugin) {
       const showView = () => {
         if (currentValue) {
           const { path, display } = parseLinkText(currentValue);
-          linkEl.setText(display);
-          linkEl.dataset.href = path;
-          linkEl.style.display = "";
+          linkInner.setText(display);
+          linkInner.dataset.href = path;
+          linkOuter.style.display = "";
         } else {
-          linkEl.style.display = "none";
+          linkOuter.style.display = "none";
         }
         input.style.display = "none";
       };
       const showEdit = () => {
-        linkEl.style.display = "none";
+        linkOuter.style.display = "none";
         input.style.display = "";
         input.value = currentValue != null ? currentValue : "";
         input.focus();
       };
-      linkEl.addEventListener("click", (e) => {
+      linkInner.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (currentValue) {
@@ -9491,7 +9492,7 @@ function registerLinkPropertyWidget(plugin) {
         showView();
       } else {
         input.style.display = "";
-        linkEl.style.display = "none";
+        linkOuter.style.display = "none";
       }
       return {
         type: "mdbase-link",
