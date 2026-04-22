@@ -6,3 +6,8 @@ node_modules/
 
 # Demo Vault
 test-vault/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
