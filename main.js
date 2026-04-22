@@ -8296,7 +8296,7 @@ if (dev_fallback_default) {
 }
 
 // src/main.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // src/collection/config.ts
 var import_obsidian = require("obsidian");
@@ -9409,7 +9409,12 @@ function getCandidateFiles(plugin, target) {
   return files.filter((f) => {
     var _a5, _b3;
     const fm = (_b3 = (_a5 = plugin.app.metadataCache.getFileCache(f)) == null ? void 0 : _a5.frontmatter) != null ? _b3 : {};
-    const matched = matchFileToTypes(f.path, fm, plugin.types, plugin.config);
+    const matched = matchFileToTypes(
+      f.path,
+      fm,
+      plugin.types,
+      plugin.mdbaseConfig
+    );
     return matched.some((t) => t.name.toLowerCase() === lower);
   });
 }
@@ -9503,6 +9508,163 @@ function unregisterLinkPropertyWidget(plugin) {
   delete metadataTypeManager.registeredTypeWidgets["mdbase-link"];
 }
 
+// src/health/HealthCheckModal.ts
+var import_obsidian5 = require("obsidian");
+
+// src/health/propertySync.ts
+function getRequiredWidgetType(fieldType) {
+  if (fieldType === "link") return "mdbase-link";
+  return null;
+}
+function computeSyncStatus(types, getAllProperties) {
+  var _a5, _b3;
+  const fieldWidgetMap = /* @__PURE__ */ new Map();
+  for (const typeDef of types.values()) {
+    for (const [fieldName, fieldDef] of Object.entries((_a5 = typeDef.fields) != null ? _a5 : {})) {
+      const requiredWidget = getRequiredWidgetType(fieldDef.type);
+      if (!requiredWidget) continue;
+      if (!fieldWidgetMap.has(fieldName)) {
+        fieldWidgetMap.set(fieldName, /* @__PURE__ */ new Map());
+      }
+      const widgetMap = fieldWidgetMap.get(fieldName);
+      if (!widgetMap.has(requiredWidget)) {
+        widgetMap.set(requiredWidget, []);
+      }
+      widgetMap.get(requiredWidget).push(typeDef.name);
+    }
+  }
+  const currentProperties = getAllProperties();
+  const upToDate = [];
+  const needsSync = [];
+  const conflicts = [];
+  for (const [fieldName, widgetMap] of fieldWidgetMap.entries()) {
+    if (widgetMap.size > 1) {
+      conflicts.push({ fieldName, conflictingWidgets: widgetMap });
+      continue;
+    }
+    const [[requiredWidget, typeNames]] = [...widgetMap.entries()];
+    const entry = {
+      fieldName,
+      requiredWidget,
+      definedInTypes: typeNames
+    };
+    if (((_b3 = currentProperties[fieldName]) == null ? void 0 : _b3.widget) === requiredWidget) {
+      upToDate.push(entry);
+    } else {
+      needsSync.push(entry);
+    }
+  }
+  return { upToDate, needsSync, conflicts };
+}
+
+// src/health/HealthCheckModal.ts
+var HealthCheckModal = class extends import_obsidian5.Modal {
+  constructor(app, plugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+  onOpen() {
+    this.titleEl.setText("mdbase Health Check");
+    this.modalEl.addClass("mdbase-health-modal");
+    this.render();
+  }
+  render() {
+    const { contentEl } = this;
+    contentEl.empty();
+    this.renderPropertySync(contentEl);
+  }
+  renderPropertySync(el) {
+    const section = el.createDiv({ cls: "mdbase-health-section" });
+    const header = section.createDiv({ cls: "mdbase-health-section-header" });
+    header.createEl("h4", { text: "Property Type Sync" });
+    header.createEl("p", {
+      text: "Verifies that Obsidian's property type registry matches the widget types required by your mdbase type definitions."
+    });
+    const mtm = this.app.metadataTypeManager;
+    if (!mtm) {
+      renderCallout(section, "error", "MetadataTypeManager not available.");
+      return;
+    }
+    if (!this.plugin.types.size) {
+      renderCallout(section, "neutral", "No types defined in the collection.");
+      return;
+    }
+    const status = computeSyncStatus(
+      this.plugin.types,
+      () => mtm.getAllProperties()
+    );
+    const hasIssues = status.needsSync.length > 0 || status.conflicts.length > 0;
+    for (const conflict of status.conflicts) {
+      const parts = [...conflict.conflictingWidgets.entries()].map(([widget, typeNames]) => `"${widget}" (${typeNames.join(", ")})`).join(" vs ");
+      const box = renderCallout(
+        section,
+        "error",
+        `Conflict on field "${conflict.fieldName}"`
+      );
+      box.createEl("p", {
+        cls: "mdbase-health-callout-body",
+        text: `This field requires ${parts}. Resolve the conflict in your type definitions before syncing.`
+      });
+    }
+    if (status.needsSync.length > 0) {
+      const label = `${status.needsSync.length} field${status.needsSync.length !== 1 ? "s" : ""} need${status.needsSync.length === 1 ? "s" : ""} to be registered in Obsidian`;
+      const box = renderCallout(section, "warning", label);
+      const list = box.createEl("ul", { cls: "mdbase-health-field-list" });
+      for (const entry of status.needsSync) {
+        const li = list.createEl("li", { cls: "mdbase-health-field-row" });
+        li.createEl("code", { text: entry.fieldName });
+        li.createSpan({ text: " \u2192 " });
+        li.createEl("code", { text: entry.requiredWidget });
+        li.createSpan({
+          cls: "mdbase-health-field-meta",
+          text: ` (${entry.definedInTypes.join(", ")})`
+        });
+      }
+      if (status.conflicts.length === 0) {
+        new import_obsidian5.Setting(box).setClass("mdbase-health-sync-setting").addButton(
+          (btn) => btn.setButtonText("Sync Now").setCta().onClick(async () => {
+            for (const entry of status.needsSync) {
+              await mtm.setType(entry.fieldName, entry.requiredWidget);
+            }
+            new import_obsidian5.Notice(
+              `Synced ${status.needsSync.length} property type${status.needsSync.length !== 1 ? "s" : ""}.`
+            );
+            this.render();
+          })
+        );
+      }
+    }
+    if (status.upToDate.length > 0) {
+      if (!hasIssues) {
+        const label = `All ${status.upToDate.length} managed property type${status.upToDate.length !== 1 ? "s are" : " is"} correctly configured`;
+        renderCallout(section, "success", label);
+      } else {
+        const box = section.createDiv({ cls: "mdbase-health-up-to-date" });
+        box.createEl("p", {
+          text: `${status.upToDate.length} field${status.upToDate.length !== 1 ? "s are" : " is"} already up to date.`
+        });
+      }
+    }
+    if (status.upToDate.length === 0 && status.needsSync.length === 0 && status.conflicts.length === 0) {
+      renderCallout(
+        section,
+        "neutral",
+        "No fields require custom property widgets."
+      );
+    }
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+function renderCallout(parent, variant, title) {
+  const box = parent.createDiv({
+    cls: `mdbase-health-callout mdbase-health-callout--${variant}`
+  });
+  box.createEl("p", { cls: "mdbase-health-callout-title", text: title });
+  return box;
+}
+
 // node_modules/.pnpm/svelte@5.55.4/node_modules/svelte/src/version.js
 var PUBLIC_VERSION = "5";
 
@@ -9591,7 +9753,7 @@ function ValidationModal($$anchor, $$props) {
 }
 
 // src/main.ts
-var MdbasePlugin = class extends import_obsidian5.Plugin {
+var MdbasePlugin = class extends import_obsidian6.Plugin {
   constructor() {
     super(...arguments);
     this.mdbaseConfig = null;
@@ -9612,9 +9774,14 @@ var MdbasePlugin = class extends import_obsidian5.Plugin {
       name: "Validate all files",
       callback: () => this.validateAllFiles()
     });
+    this.addCommand({
+      id: "health-check",
+      name: "Health check",
+      callback: () => new HealthCheckModal(this.app, this).open()
+    });
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (file instanceof import_obsidian5.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian6.TFile && file.extension === "md") {
           this.validateAndDisplay(file);
         }
       })
@@ -9644,7 +9811,7 @@ var MdbasePlugin = class extends import_obsidian5.Plugin {
   async initializeCollection() {
     this.mdbaseConfig = await createDefaultConfig(this.app.vault);
     this.types = /* @__PURE__ */ new Map();
-    new import_obsidian5.Notice("Collection initialized! mdbase.yaml created at vault root.");
+    new import_obsidian6.Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
   async loadConfig() {
     this.mdbaseConfig = await loadConfig(this.app.vault);
@@ -9708,7 +9875,7 @@ var MdbasePlugin = class extends import_obsidian5.Plugin {
     var _a5;
     const file = this.app.workspace.getActiveFile();
     if (!file) {
-      new import_obsidian5.Notice("No active file.");
+      new import_obsidian6.Notice("No active file.");
       return;
     }
     const fileIssues = (_a5 = this.issues.get(file.path)) != null ? _a5 : [];
@@ -9718,7 +9885,7 @@ var MdbasePlugin = class extends import_obsidian5.Plugin {
   async validateAllFiles() {
     var _a5, _b3;
     if (!this.mdbaseConfig) {
-      new import_obsidian5.Notice("No mdbase collection found.");
+      new import_obsidian6.Notice("No mdbase collection found.");
       return;
     }
     const files = this.app.vault.getMarkdownFiles();
@@ -9745,12 +9912,12 @@ var MdbasePlugin = class extends import_obsidian5.Plugin {
         (i) => i.severity === "warning"
       ).length;
     }
-    new import_obsidian5.Notice(
+    new import_obsidian6.Notice(
       `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`
     );
   }
 };
-var ValidationModal2 = class extends import_obsidian5.Modal {
+var ValidationModal2 = class extends import_obsidian6.Modal {
   constructor(app, file, issues) {
     super(app);
     this.component = null;

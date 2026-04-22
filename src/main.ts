@@ -17,6 +17,7 @@ import {
   registerLinkPropertyWidget,
   unregisterLinkPropertyWidget,
 } from "./properties/LinkPropertyWidget.ts";
+import { HealthCheckModal } from "./health/HealthCheckModal.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
@@ -43,6 +44,12 @@ export default class MdbasePlugin extends Plugin {
       id: "validate-all-files",
       name: "Validate all files",
       callback: () => this.validateAllFiles(),
+    });
+
+    this.addCommand({
+      id: "health-check",
+      name: "Health check",
+      callback: () => new HealthCheckModal(this.app, this).open(),
     });
 
     this.registerEvent(
