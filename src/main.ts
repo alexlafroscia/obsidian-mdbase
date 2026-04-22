@@ -22,6 +22,11 @@ import {
   registerValidationButton,
   refreshValidationButton,
 } from "./validation/validationButton.ts";
+import {
+  registerStatusBar,
+  refreshStatusBar,
+  clearStatusBar,
+} from "./validation/statusBar.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
@@ -30,11 +35,8 @@ export default class MdbasePlugin extends Plugin {
 
   issues: Map<string, ValidationIssue[]> = new Map();
 
-  private statusBarItem!: HTMLElement;
-
   async onload(): Promise<void> {
-    this.statusBarItem = this.addStatusBarItem();
-    this.statusBarItem.setText("mdbase");
+    registerStatusBar(this);
 
     this.addSettingTab(new MdbaseSettingTab(this.app, this));
 
@@ -118,7 +120,7 @@ export default class MdbasePlugin extends Plugin {
 
   async validateAndDisplay(file: TFile): Promise<void> {
     if (!this.mdbaseConfig) {
-      this.statusBarItem.setText("mdbase: no collection");
+      clearStatusBar();
       return;
     }
     const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
@@ -131,42 +133,8 @@ export default class MdbasePlugin extends Plugin {
     );
     const fileIssues = validateFile(file.path, fm, matched, this.mdbaseConfig);
     this.issues.set(file.path, fileIssues);
-    this.updateStatusBar(file, fileIssues, matched.length > 0);
+    refreshStatusBar(file, fileIssues, matched.length > 0);
     refreshValidationButton(this);
-  }
-
-  private updateStatusBar(
-    file: TFile,
-    fileIssues: ValidationIssue[],
-    hasType: boolean,
-  ): void {
-    if (!hasType) {
-      this.statusBarItem.setText("mdbase: untyped");
-      this.statusBarItem.className = "";
-      return;
-    }
-    const errors = fileIssues.filter((i) => i.severity === "error").length;
-    const warnings = fileIssues.filter((i) => i.severity === "warning").length;
-    if (errors > 0) {
-      this.statusBarItem.setText(
-        `mdbase: ${errors} error${errors > 1 ? "s" : ""}`,
-      );
-      this.statusBarItem.addClass("mdbase-status-error");
-      this.statusBarItem.removeClass("mdbase-status-warning");
-      this.statusBarItem.removeClass("mdbase-status-ok");
-    } else if (warnings > 0) {
-      this.statusBarItem.setText(
-        `mdbase: ${warnings} warning${warnings > 1 ? "s" : ""}`,
-      );
-      this.statusBarItem.addClass("mdbase-status-warning");
-      this.statusBarItem.removeClass("mdbase-status-error");
-      this.statusBarItem.removeClass("mdbase-status-ok");
-    } else {
-      this.statusBarItem.setText("mdbase: ✓");
-      this.statusBarItem.addClass("mdbase-status-ok");
-      this.statusBarItem.removeClass("mdbase-status-error");
-      this.statusBarItem.removeClass("mdbase-status-warning");
-    }
   }
 
   private validateCurrentFile(): void {
