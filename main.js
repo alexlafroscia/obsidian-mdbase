@@ -8296,7 +8296,7 @@ if (dev_fallback_default) {
 }
 
 // src/main.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/collection/config.ts
 var import_obsidian = require("obsidian");
@@ -9666,6 +9666,63 @@ function renderCallout(parent, variant, title) {
   return box;
 }
 
+// src/validation/validationButton.ts
+var import_obsidian6 = require("obsidian");
+var SENTINEL_CLASS = "mdbase-validation-btn";
+function inject(plugin, container) {
+  var _a5;
+  if (container.querySelector(`.${SENTINEL_CLASS}`)) return;
+  const addBtn = container.querySelector(".metadata-add-button");
+  if (!addBtn) return;
+  const file = plugin.app.workspace.getActiveFile();
+  const issues = file ? (_a5 = plugin.issues.get(file.path)) != null ? _a5 : [] : [];
+  const hasIssues = issues.length > 0;
+  const errors = issues.filter((i) => i.severity === "error").length;
+  const warnings = issues.filter((i) => i.severity === "warning").length;
+  const btn = createEl("button", {
+    cls: `${SENTINEL_CLASS} clickable-icon ${hasIssues ? "mdbase-validation-btn--invalid" : "mdbase-validation-btn--valid"}`
+  });
+  btn.setText(hasIssues ? `\u26A0 ${issues.length}` : "\u2713");
+  const tooltipText = hasIssues ? [
+    errors > 0 ? `${errors} error${errors > 1 ? "s" : ""}` : null,
+    warnings > 0 ? `${warnings} warning${warnings > 1 ? "s" : ""}` : null
+  ].filter(Boolean).join(", ") + " \u2014 click to view" : "File passes validation";
+  (0, import_obsidian6.setTooltip)(btn, tooltipText, { placement: "top" });
+  btn.addEventListener("click", () => {
+    plugin.app.commands.executeCommandById(
+      "obsidian-mdbase:validate-current-file"
+    );
+  });
+  addBtn.insertAdjacentElement("afterend", btn);
+}
+function refresh(plugin) {
+  var _a5;
+  const containers = plugin.app.workspace.containerEl.querySelectorAll(
+    ".metadata-container"
+  );
+  for (const container of containers) {
+    (_a5 = container.querySelector(`.${SENTINEL_CLASS}`)) == null ? void 0 : _a5.remove();
+    inject(plugin, container);
+  }
+}
+function registerValidationButton(plugin) {
+  plugin.registerEvent(
+    plugin.app.workspace.on("layout-change", () => refresh(plugin))
+  );
+  plugin.registerEvent(
+    plugin.app.workspace.on("active-leaf-change", () => refresh(plugin))
+  );
+  plugin.registerEvent(
+    plugin.app.workspace.on("file-open", () => refresh(plugin))
+  );
+  plugin.registerEvent(
+    plugin.app.metadataCache.on("changed", () => refresh(plugin))
+  );
+}
+function refreshValidationButton(plugin) {
+  refresh(plugin);
+}
+
 // node_modules/.pnpm/svelte@5.55.4/node_modules/svelte/src/version.js
 var PUBLIC_VERSION = "5";
 
@@ -9754,7 +9811,7 @@ function ValidationModal($$anchor, $$props) {
 }
 
 // src/main.ts
-var MdbasePlugin = class extends import_obsidian6.Plugin {
+var MdbasePlugin = class extends import_obsidian7.Plugin {
   constructor() {
     super(...arguments);
     this.mdbaseConfig = null;
@@ -9782,7 +9839,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
     });
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (file instanceof import_obsidian6.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian7.TFile && file.extension === "md") {
           this.validateAndDisplay(file);
         }
       })
@@ -9802,6 +9859,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
       })
     );
     registerLinkPropertyWidget(this);
+    registerValidationButton(this);
     this.app.workspace.onLayoutReady(async () => {
       await this.reload();
     });
@@ -9812,7 +9870,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
   async initializeCollection() {
     this.mdbaseConfig = await createDefaultConfig(this.app.vault);
     this.types = /* @__PURE__ */ new Map();
-    new import_obsidian6.Notice("Collection initialized! mdbase.yaml created at vault root.");
+    new import_obsidian7.Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
   async loadConfig() {
     this.mdbaseConfig = await loadConfig(this.app.vault);
@@ -9842,6 +9900,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
     const fileIssues = validateFile(file.path, fm, matched, this.mdbaseConfig);
     this.issues.set(file.path, fileIssues);
     this.updateStatusBar(file, fileIssues, matched.length > 0);
+    refreshValidationButton(this);
   }
   updateStatusBar(file, fileIssues, hasType) {
     if (!hasType) {
@@ -9876,7 +9935,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
     var _a5;
     const file = this.app.workspace.getActiveFile();
     if (!file) {
-      new import_obsidian6.Notice("No active file.");
+      new import_obsidian7.Notice("No active file.");
       return;
     }
     const fileIssues = (_a5 = this.issues.get(file.path)) != null ? _a5 : [];
@@ -9886,7 +9945,7 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
   async validateAllFiles() {
     var _a5, _b3;
     if (!this.mdbaseConfig) {
-      new import_obsidian6.Notice("No mdbase collection found.");
+      new import_obsidian7.Notice("No mdbase collection found.");
       return;
     }
     const files = this.app.vault.getMarkdownFiles();
@@ -9913,12 +9972,12 @@ var MdbasePlugin = class extends import_obsidian6.Plugin {
         (i) => i.severity === "warning"
       ).length;
     }
-    new import_obsidian6.Notice(
+    new import_obsidian7.Notice(
       `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`
     );
   }
 };
-var ValidationModal2 = class extends import_obsidian6.Modal {
+var ValidationModal2 = class extends import_obsidian7.Modal {
   constructor(app, file, issues) {
     super(app);
     this.component = null;

@@ -293,3 +293,42 @@
   font-size: 0.875em;
   color: var(--text-muted);
 }
+
+/* ── Validation button (metadata panel) ────────────────────── */
+
+.mdbase-validation-btn {
+  cursor: pointer;
+  font-size: var(--metadata-label-font-size);
+  font-family: var(--metadata-label-font);
+  padding-inline-start: var(--size-2-3);
+}
+
+.mdbase-validation-btn--valid {
+  color: var(--color-green);
+  border-color: var(--color-green);
+  background: rgba(var(--color-green-rgb), 0.08);
+}
+
+.mdbase-validation-btn--invalid {
+  color: var(--color-orange);
+  border-color: var(--color-orange);
+  background: rgba(var(--color-orange-rgb), 0.08);
+}
+
+/* Arrange button in metadata container correctly */
+
+.metadata-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.metadata-properties {
+  /* Span properties panel to full width of parent */
+  flex: 1 1 100%;
+}
+
+.metadata-container .metadata-add-button {
+  margin-top: unset;
+}

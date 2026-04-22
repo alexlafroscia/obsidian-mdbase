@@ -18,6 +18,10 @@ import {
   unregisterLinkPropertyWidget,
 } from "./properties/LinkPropertyWidget.ts";
 import { HealthCheckModal } from "./health/HealthCheckModal.ts";
+import {
+  registerValidationButton,
+  refreshValidationButton,
+} from "./validation/validationButton.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
@@ -78,6 +82,7 @@ export default class MdbasePlugin extends Plugin {
 
     // Custom property editors
     registerLinkPropertyWidget(this);
+    registerValidationButton(this);
 
     this.app.workspace.onLayoutReady(async () => {
       await this.reload();
@@ -127,6 +132,7 @@ export default class MdbasePlugin extends Plugin {
     const fileIssues = validateFile(file.path, fm, matched, this.mdbaseConfig);
     this.issues.set(file.path, fileIssues);
     this.updateStatusBar(file, fileIssues, matched.length > 0);
+    refreshValidationButton(this);
   }
 
   private updateStatusBar(
