@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install
+
+      - name: Build plugin
+        run: pnpm build
+
+      # Wait for tests to finish successfully
+      - uses: ArcticLampyrid/action-wait-for-workflow@v1.3.0
+        with:
+          workflow: ci.yml
+          wait-interval: 10
+
+      # Recommended Release Workflow
+      # https://docs.obsidian.md/Plugins/Releasing/Release+your+plugin+with+GitHub+Actions
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+
+          FLAGS="--title=$tag"
+          if [[ "${{ github.ref }}" == *"beta"* ]]; then
+            FLAGS="$FLAGS --prerelease"
+          fi
+
+          gh release create "$tag" \
+            $FLAGS \
+            main.js manifest.json styles.css
