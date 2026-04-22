@@ -297,21 +297,17 @@
 /* ── Validation button (metadata panel) ────────────────────── */
 
 .mdbase-validation-btn {
-  cursor: pointer;
   font-size: var(--metadata-label-font-size);
   font-family: var(--metadata-label-font);
-  padding-inline-start: var(--size-2-3);
 }
 
 .mdbase-validation-btn--valid {
   color: var(--color-green);
-  border-color: var(--color-green);
   background: rgba(var(--color-green-rgb), 0.08);
 }
 
 .mdbase-validation-btn--invalid {
   color: var(--color-orange);
-  border-color: var(--color-orange);
   background: rgba(var(--color-orange-rgb), 0.08);
 }
 
