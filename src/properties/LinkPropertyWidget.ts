@@ -92,7 +92,7 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
     name: () => "Link (mdbase)",
     validate: (value: unknown) => value == null || typeof value === "string",
     render(el: HTMLElement, initialValue: string | null, ctx) {
-      const { key, onChange } = ctx;
+      const { blur, key, onChange } = ctx;
 
       const filePath: string | undefined =
         ctx.sourcePath ?? plugin.app.workspace.getActiveFile()?.path;
@@ -144,9 +144,16 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         setTimeout(showView, 100);
       });
 
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          blur();
+        }
+      });
+
       input.addEventListener("change", () => {
         currentValue = input.value || null;
         onChange(currentValue);
+        blur();
       });
 
       new LinkSuggest(
