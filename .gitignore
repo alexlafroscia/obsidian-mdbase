@@ -1,6 +1,9 @@
 node_modules/
 *.map
 
+# Build output
+main.js
+
 # Claude
 .claude/worktrees
 

@@ -6,8 +6,6 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "test": "pnpm run test:output",
-    "test:output": "pnpm run build && git diff --exit-code main.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "svelte-check",
