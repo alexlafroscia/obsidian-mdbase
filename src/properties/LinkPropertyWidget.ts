@@ -6,7 +6,7 @@ import { matchFileToTypes } from "../matching/matcher.ts";
 class LinkSuggest extends AbstractInputSuggest<TFile> {
   constructor(
     app: App,
-    inputEl: HTMLInputElement,
+    inputEl: HTMLDivElement,
     private getCandidates: () => TFile[],
     private onChoose: (file: TFile) => void,
   ) {
@@ -23,14 +23,28 @@ class LinkSuggest extends AbstractInputSuggest<TFile> {
   }
 
   renderSuggestion(file: TFile, el: HTMLElement): void {
-    el.createDiv({ text: file.basename });
-    el.createDiv({ cls: "mdbase-link-suggest-path", text: file.path });
+    el.classList.add("mod-complex");
+
+    const content = el.createDiv({
+      cls: "suggestion-content",
+    });
+
+    content.createDiv({ cls: "suggestion-title", text: file.basename });
+    content.createDiv({ cls: "suggestion-note", text: file.path });
   }
 
   selectSuggestion(file: TFile, _evt: MouseEvent | KeyboardEvent): void {
     this.onChoose(file);
     this.close();
   }
+}
+
+function selectAllContent(el: HTMLElement): void {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel?.removeAllRanges();
+  sel?.addRange(range);
 }
 
 function parseLinkText(raw: string): { path: string; display: string } {
@@ -103,10 +117,13 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
       const linkInner = linkOuter.createDiv({
         cls: "metadata-link-inner internal-link",
       });
-      const input = el.createEl("input", {
+      const input = el.createEl("div", {
         type: "text",
         placeholder: "Empty",
-        cls: "mdbase-link-input",
+        cls: "metadata-input-longtext",
+        attr: {
+          contenteditable: true,
+        },
       });
 
       const showView = () => {
@@ -124,8 +141,9 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
       const showEdit = () => {
         linkOuter.style.display = "none";
         input.style.display = "";
-        input.value = currentValue ?? "";
+        input.innerText = currentValue ?? "";
         input.focus();
+        selectAllContent(input);
       };
 
       linkInner.addEventListener("click", (e) => {
@@ -137,7 +155,7 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         }
       });
 
-      el.addEventListener("click", () => showEdit());
+      linkOuter.addEventListener("click", () => showEdit());
 
       input.addEventListener("blur", () => {
         // Defer so suggestion selectSuggestion fires before we hide the input
@@ -150,7 +168,9 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         }
       });
 
-      input.addEventListener("change", () => {
+      input.addEventListener("change", (e) => {
+        debugger;
+
         currentValue = input.value || null;
         onChange(currentValue);
         blur();
@@ -168,7 +188,10 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         (file) => {
           const wikilink = `[[${file.basename}]]`;
           currentValue = wikilink;
-          input.value = wikilink;
+
+          input.innerText = wikilink;
+          console.log("changed");
+
           onChange(wikilink);
           showView();
         },
