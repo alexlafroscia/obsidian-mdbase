@@ -29,10 +29,10 @@ export class MdbaseSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    if (!this.plugin.config) {
+    if (!this.plugin.mdbaseConfig) {
       this.renderNoCollection(containerEl);
     } else {
-      this.renderCollectionSettings(containerEl, this.plugin.config);
+      this.renderCollectionSettings(containerEl, this.plugin.mdbaseConfig);
       this.renderTypesSection(containerEl);
     }
   }
@@ -209,8 +209,8 @@ export class MdbaseSettingTab extends PluginSettingTab {
 
     const deleteBtn = actions.createEl("button", { text: "Delete" });
     deleteBtn.addEventListener("click", async () => {
-      if (!this.plugin.config) return;
-      await deleteType(this.app.vault, this.plugin.config, typeDef.name);
+      if (!this.plugin.mdbaseConfig) return;
+      await deleteType(this.app.vault, this.plugin.mdbaseConfig, typeDef.name);
       await this.plugin.reload();
       this.display();
       new Notice(`Deleted type "${typeDef.name}"`);
@@ -393,8 +393,8 @@ class TypeEditorModal extends Modal {
         new Notice("Type name is required.");
         return;
       }
-      if (!this.plugin.config) return;
-      await saveType(this.app.vault, this.plugin.config, this.draft);
+      if (!this.plugin.mdbaseConfig) return;
+      await saveType(this.app.vault, this.plugin.mdbaseConfig, this.draft);
       await this.plugin.reload();
       this.onSave();
       this.close();

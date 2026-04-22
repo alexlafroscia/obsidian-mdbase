@@ -13,9 +13,11 @@ import { MdbaseSettingTab } from "./settings/SettingsTab.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
-  config: MdbaseConfig | null = null;
+  mdbaseConfig: MdbaseConfig | null = null;
   types: Map<string, TypeDefinition> = new Map();
+
   issues: Map<string, ValidationIssue[]> = new Map();
+
   private statusBarItem!: HTMLElement;
 
   async onload(): Promise<void> {
@@ -66,15 +68,15 @@ export default class MdbasePlugin extends Plugin {
   }
 
   async initializeCollection(): Promise<void> {
-    this.config = await createDefaultConfig(this.app.vault);
+    this.mdbaseConfig = await createDefaultConfig(this.app.vault);
     this.types = new Map();
     new Notice("Collection initialized! mdbase.yaml created at vault root.");
   }
 
   async loadConfig(): Promise<void> {
-    this.config = await loadConfig(this.app.vault);
-    this.types = this.config
-      ? await loadTypes(this.app.vault, this.config)
+    this.mdbaseConfig = await loadConfig(this.app.vault);
+    this.types = this.mdbaseConfig
+      ? await loadTypes(this.app.vault, this.mdbaseConfig)
       : new Map();
   }
 
@@ -89,14 +91,19 @@ export default class MdbasePlugin extends Plugin {
   }
 
   async validateAndDisplay(file: TFile): Promise<void> {
-    if (!this.config) {
+    if (!this.mdbaseConfig) {
       this.statusBarItem.setText("mdbase: no collection");
       return;
     }
     const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
       {}) as Record<string, unknown>;
-    const matched = matchFileToTypes(file.path, fm, this.types, this.config);
-    const fileIssues = validateFile(file.path, fm, matched, this.config);
+    const matched = matchFileToTypes(
+      file.path,
+      fm,
+      this.types,
+      this.mdbaseConfig,
+    );
+    const fileIssues = validateFile(file.path, fm, matched, this.mdbaseConfig);
     this.issues.set(file.path, fileIssues);
     this.updateStatusBar(file, fileIssues, matched.length > 0);
   }
@@ -147,7 +154,7 @@ export default class MdbasePlugin extends Plugin {
   }
 
   private async validateAllFiles(): Promise<void> {
-    if (!this.config) {
+    if (!this.mdbaseConfig) {
       new Notice("No mdbase collection found.");
       return;
     }
@@ -159,8 +166,18 @@ export default class MdbasePlugin extends Plugin {
     for (const file of files) {
       const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
         {}) as Record<string, unknown>;
-      const matched = matchFileToTypes(file.path, fm, this.types, this.config);
-      const fileIssues = validateFile(file.path, fm, matched, this.config);
+      const matched = matchFileToTypes(
+        file.path,
+        fm,
+        this.types,
+        this.mdbaseConfig,
+      );
+      const fileIssues = validateFile(
+        file.path,
+        fm,
+        matched,
+        this.mdbaseConfig,
+      );
       this.issues.set(file.path, fileIssues);
       totalErrors += fileIssues.filter((i) => i.severity === "error").length;
       totalWarnings += fileIssues.filter(
