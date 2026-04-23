@@ -1,5 +1,6 @@
 import { setTooltip } from "obsidian";
 import type MdbasePlugin from "../main.ts";
+import { matchFileToTypes } from "../matching/matcher.ts";
 
 const SENTINEL_CLASS = "mdbase-validation-btn";
 
@@ -10,7 +11,19 @@ function inject(plugin: MdbasePlugin, container: Element) {
   if (!addBtn) return;
 
   const file = plugin.app.workspace.getActiveFile();
-  const issues = file ? (plugin.issues.get(file.path) ?? []) : [];
+  if (!file || !plugin.mdbaseConfig) return;
+
+  const fm = (plugin.app.metadataCache.getFileCache(file)?.frontmatter ??
+    {}) as Record<string, unknown>;
+  const matched = matchFileToTypes(
+    file.path,
+    fm,
+    plugin.types,
+    plugin.mdbaseConfig,
+  );
+  if (matched.length === 0) return;
+
+  const issues = plugin.issues.get(file.path) ?? [];
   const hasIssues = issues.length > 0;
 
   const errors = issues.filter((i) => i.severity === "error").length;
