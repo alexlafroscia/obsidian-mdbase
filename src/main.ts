@@ -22,11 +22,6 @@ import {
   registerValidationButton,
   refreshValidationButton,
 } from "./validation/validationButton.ts";
-import {
-  registerStatusBar,
-  refreshStatusBar,
-  clearStatusBar,
-} from "./validation/statusBar.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
 
 export default class MdbasePlugin extends Plugin {
@@ -36,8 +31,6 @@ export default class MdbasePlugin extends Plugin {
   issues: Map<string, ValidationIssue[]> = new Map();
 
   async onload(): Promise<void> {
-    registerStatusBar(this);
-
     this.addSettingTab(new MdbaseSettingTab(this.app, this));
 
     this.addCommand({
@@ -120,7 +113,6 @@ export default class MdbasePlugin extends Plugin {
 
   async validateAndDisplay(file: TFile): Promise<void> {
     if (!this.mdbaseConfig) {
-      clearStatusBar();
       return;
     }
     const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ??
@@ -133,7 +125,6 @@ export default class MdbasePlugin extends Plugin {
     );
     const fileIssues = validateFile(file.path, fm, matched, this.mdbaseConfig);
     this.issues.set(file.path, fileIssues);
-    refreshStatusBar(file, fileIssues, matched.length > 0);
     refreshValidationButton(this);
   }
 
