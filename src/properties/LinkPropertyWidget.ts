@@ -168,14 +168,6 @@ export function registerLinkPropertyWidget(plugin: MdbasePlugin): void {
         }
       });
 
-      input.addEventListener("change", (e) => {
-        debugger;
-
-        currentValue = input.value || null;
-        onChange(currentValue);
-        blur();
-      });
-
       new LinkSuggest(
         plugin.app,
         input,
