@@ -23,6 +23,7 @@ import {
   refreshValidationButton,
 } from "./validation/validationButton.ts";
 import ValidationModalComponent from "./ui/ValidationModal.svelte";
+import { ValidationView, VALIDATION_VIEW_TYPE } from "./ui/ValidationView.ts";
 
 export default class MdbasePlugin extends Plugin {
   mdbaseConfig: MdbaseConfig | null = null;
@@ -31,6 +32,11 @@ export default class MdbasePlugin extends Plugin {
   issues: Map<string, ValidationIssue[]> = new Map();
 
   async onload(): Promise<void> {
+    this.registerView(
+      VALIDATION_VIEW_TYPE,
+      (leaf) => new ValidationView(leaf, this),
+    );
+
     this.addSettingTab(new MdbaseSettingTab(this.app, this));
 
     this.addCommand({
@@ -145,8 +151,6 @@ export default class MdbasePlugin extends Plugin {
       return;
     }
     const files = this.app.vault.getMarkdownFiles();
-    let totalErrors = 0;
-    let totalWarnings = 0;
     this.issues.clear();
 
     for (const file of files) {
@@ -165,15 +169,23 @@ export default class MdbasePlugin extends Plugin {
         this.mdbaseConfig,
       );
       this.issues.set(file.path, fileIssues);
-      totalErrors += fileIssues.filter((i) => i.severity === "error").length;
-      totalWarnings += fileIssues.filter(
-        (i) => i.severity === "warning",
-      ).length;
     }
 
-    new Notice(
-      `Validation complete: ${totalErrors} error${totalErrors !== 1 ? "s" : ""}, ${totalWarnings} warning${totalWarnings !== 1 ? "s" : ""} across ${files.length} files.`,
-    );
+    await this.openValidationView();
+  }
+
+  private async openValidationView(): Promise<void> {
+    const { workspace } = this.app;
+    const existing = workspace.getLeavesOfType(VALIDATION_VIEW_TYPE);
+
+    if (existing.length > 0) {
+      workspace.revealLeaf(existing[0]);
+      (existing[0].view as ValidationView).refresh();
+    } else {
+      const leaf = workspace.getLeaf("tab");
+      await leaf.setViewState({ type: VALIDATION_VIEW_TYPE, active: true });
+      workspace.revealLeaf(leaf);
+    }
   }
 }
 
