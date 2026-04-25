@@ -1,64 +1,71 @@
-import { setTooltip } from "obsidian";
+import { MarkdownView, TFile } from "obsidian";
+import type { ComponentProps } from "svelte";
+import { SvelteComponentChild } from "obsidian-svelte-ui";
+
 import type MdbasePlugin from "../main.ts";
-import { matchFileToTypes } from "../matching/matcher.ts";
 
-const SENTINEL_CLASS = "mdbase-validation-btn";
+import FileValidationButton from "./FileValidationButton.svelte";
 
-function inject(plugin: MdbasePlugin, container: Element) {
-  if (container.querySelector(`.${SENTINEL_CLASS}`)) return;
+type ChildView = SvelteComponentChild<
+  ComponentProps<typeof FileValidationButton>
+>;
 
-  const addBtn = container.querySelector(".metadata-add-button");
+function createChildView(
+  plugin: MdbasePlugin,
+  view: MarkdownView,
+  file: TFile,
+): ChildView | undefined {
+  const addBtn = view.containerEl.querySelector(".metadata-add-button");
   if (!addBtn) return;
 
-  const file = plugin.app.workspace.getActiveFile();
-  if (!file || !plugin.mdbaseConfig) return;
-
-  const fm = (plugin.app.metadataCache.getFileCache(file)?.frontmatter ??
-    {}) as Record<string, unknown>;
-  const matched = matchFileToTypes(
-    file.path,
-    fm,
-    plugin.types,
-    plugin.mdbaseConfig,
-  );
-  if (matched.length === 0) return;
-
-  const issues = plugin.issues.get(file.path) ?? [];
-  const hasIssues = issues.length > 0;
-
-  const errors = issues.filter((i) => i.severity === "error").length;
-  const warnings = issues.filter((i) => i.severity === "warning").length;
-
-  const btn = createEl("button", {
-    cls: `${SENTINEL_CLASS} clickable-icon ${hasIssues ? "mdbase-validation-btn--invalid" : "mdbase-validation-btn--valid"}`,
+  const svelteRoot = createEl("div", {
+    attr: {
+      // Remove DOM node from layout
+      style: "display: contents;",
+    },
   });
-  btn.setText(hasIssues ? `⚠ ${issues.length}` : "✓");
+  addBtn.insertAdjacentElement("afterend", svelteRoot);
 
-  const tooltipText = hasIssues
-    ? [
-        errors > 0 ? `${errors} error${errors > 1 ? "s" : ""}` : null,
-        warnings > 0 ? `${warnings} warning${warnings > 1 ? "s" : ""}` : null,
-      ]
-        .filter(Boolean)
-        .join(", ") + " — click to view"
-    : "File passes validation";
-  setTooltip(btn, tooltipText, { placement: "top" });
-  btn.addEventListener("click", () => {
-    plugin.app.commands.executeCommandById(
-      "obsidian-mdbase:validate-current-file",
-    );
+  return new SvelteComponentChild(FileValidationButton, {
+    target: svelteRoot,
+    props: {
+      plugin,
+      file,
+    },
   });
-
-  addBtn.insertAdjacentElement("afterend", btn);
 }
 
+const SVELTE_ROOT_INSTANCES = new WeakMap<MarkdownView, ChildView>();
+
 function refresh(plugin: MdbasePlugin) {
-  const containers = plugin.app.workspace.containerEl.querySelectorAll(
-    ".metadata-container",
-  );
-  for (const container of containers) {
-    container.querySelector(`.${SENTINEL_CLASS}`)?.remove();
-    inject(plugin, container);
+  // If the types aren't loaded yet, don't do anything
+  if (!plugin.mdbaseConfig) return;
+
+  // Get the view + file for the active tab
+  const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+  if (!view) return;
+
+  const file = view.file;
+  if (!file) return;
+
+  // If we already have an instance for this view, just update it with the
+  // active file
+  const existingInstance = SVELTE_ROOT_INSTANCES.get(view);
+  if (existingInstance) {
+    // `.setProps` is necessary to force Svelte to update computed properties
+    existingInstance.setProps({ plugin, file });
+    return;
+  }
+
+  // Otherwise, create it
+  const addBtn = view.containerEl.querySelector(".metadata-add-button");
+  if (!addBtn) return;
+
+  const newInstance = createChildView(plugin, view, file);
+  if (newInstance) {
+    view.addChild(newInstance);
+
+    SVELTE_ROOT_INSTANCES.set(view, newInstance);
   }
 }
 
