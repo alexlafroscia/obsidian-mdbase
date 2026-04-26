@@ -4,7 +4,7 @@
 
 <script lang="ts">
   import type { TFile } from "obsidian";
-  import { setTooltip } from "obsidian-svelte-ui";
+  import { ExtraButton, setTooltip } from "obsidian-svelte-ui";
 
   import type MdbasePlugin from "src/main";
   import { matchFileToTypes } from "src/matching/matcher";
@@ -53,11 +53,20 @@
 </script>
 
 {#if hasTypes}
-  <button
-    class={`${SENTINEL_CLASS} clickable-icon ${hasIssues ? "mdbase-validation-btn--invalid" : "mdbase-validation-btn--valid"}`}
-    onclick={onClick}
+  <ExtraButton
+    icon={hasIssues ? "triangle-alert" : "checkmark"}
+    {onClick}
     {@attach setTooltip(tooltipText)}
-  >
-    {hasIssues ? `⚠ ${issues.length}` : "✓"}
-  </button>
+    {@attach (node: HTMLElement) => {
+      node.classList.add(SENTINEL_CLASS);
+
+      if (hasIssues) {
+        node.classList.add("mdbase-validation-btn--invalid");
+        node.classList.remove("mdbase-validation-btn--valid");
+      } else {
+        node.classList.add("mdbase-validation-btn--valid");
+        node.classList.remove("mdbase-validation-btn--invalid");
+      }
+    }}
+  />
 {/if}
